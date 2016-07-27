@@ -181,7 +181,7 @@ BLOCK	*prev_node;		/* possible use node */
 int	prevPos;		/* parse position of prev_node; */
 int	feasableOnly;
 {
-	int	i;
+	double	i;
 	BRANCH	*f;
 	DU	*use;
 	int	use_type;
@@ -444,7 +444,7 @@ DU	*def;			/* symbol definition */
 int	p_use;			/* use type of previous node */
 int	*counts;		/* counts of C-uses & P-uses */
 {
-	int	i;
+	double	i;
 	BRANCH	*f;
 	DU	*use;
 	int	use_type;

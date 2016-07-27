@@ -866,7 +866,7 @@ int n;
     return 0;
 }
 
-static int
+int
 setupSignal()
 {
     char	*envsig;

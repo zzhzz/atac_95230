@@ -150,30 +150,30 @@ static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
 %term <token> INLINE            295
 %term <token> ATTRIBUTE         296
 
-%term <token> '('	501	TOK_LPAREN	501
-%term <token> ')'	502	TOK_RPAREN	502
-%term <token> '['	503	TOK_LSQUARE	503
-%term <token> ']'	504	TOK_RSQUARE	504
-%term <token> '{'	505	TOK_LCURLY	505
-%term <token> '}'	506	TOK_RCURLY	506
-%term <token> ','	507	TOK_COMMA	507
-%term <token> '='	508	TOK_EQUALS	508
-%term <token> '?'	509	TOK_QMARK	509
-%term <token> ':'	510	TOK_COLON	510
-%term <token> '|'	511	TOK_VERTICAL	511
-%term <token> '^'	512	TOK_CARROT	512
-%term <token> '&'	513	TOK_AMPER	513
-%term <token> '>'	514	TOK_GREATER	514
-%term <token> '<'	515	TOK_LESSER	515
-%term <token> '+'	516	TOK_PLUS	516
-%term <token> '-'	517	TOK_DASH	517
-%term <token> '*'	518	TOK_STAR	518
-%term <token> '%'	519	TOK_PERCENT	519
-%term <token> '/'	520	TOK_SLASH	520
-%term <token> '!'	521	TOK_EXCLAIM	521
-%term <token> '~'	522	TOK_TILDE	522
-%term <token> '.'	523	TOK_PERIOD	523
-%term <token> ';'	524	TOK_SEMICOLON	524
+%term <token> '(' 	TOK_LPAREN	501	
+%term <token> ')'	TOK_RPAREN	502	
+%term <token> '['	TOK_LSQUARE	503	
+%term <token> ']'	TOK_RSQUARE	504	
+%term <token> '{'	TOK_LCURLY	505	
+%term <token> '}'	TOK_RCURLY	506	
+%term <token> ','	TOK_COMMA	507	
+%term <token> '='	TOK_EQUALS	508	
+%term <token> '?'	TOK_QMARK	509
+%term <token> ':'	TOK_COLON	510
+%term <token> '|'	TOK_VERTICAL	511
+%term <token> '^'	TOK_CARROT	512
+%term <token> '&'	TOK_AMPER	513
+%term <token> '>'	TOK_GREATER	514
+%term <token> '<'	TOK_LESSER	515
+%term <token> '-'	TOK_DASH	516
+%term <token> '+'	TOK_PLUS	517
+%term <token> '*'	TOK_STAR	518
+%term <token> '%'	TOK_PERCENT	519
+%term <token> '/'	TOK_SLASH	520
+%term <token> '!'	TOK_EXCLAIM	521
+%term <token> '~'	TOK_TILDE	522
+%term <token> '.'	TOK_PERIOD	523
+%term <token> ';'	TOK_SEMICOLON	524
 
 /*
 * Multi-char. tokens and token groups
@@ -388,14 +388,13 @@ complex_term:
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	name '(' names ')' 
+		|	name'('names')' 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
-				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_NAMES,
-					$1, $3);
+				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_NAMES, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	name '(' ')' 
+		|	name'('')' 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL, $1, 0);
@@ -439,6 +438,10 @@ complex_term:
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_E_ANSI,
 					$1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
+			}
+		|	/*empty*/
+			{
+				$$ = NULL;
 			}
 		;
 ansi_params:
@@ -613,6 +616,10 @@ param_dcls:
 				/* extra ';' not allowed before 1st param_dcl */
 				$$ = $1;
 				tsrc_pos($$, NULL, $2.srcpos);
+			}
+		|	/*empty*/
+			{
+				$$ = NULL;
 			}
 		;
 param_dcl:
@@ -800,13 +807,13 @@ member:
 			{
 			        $$ = NULL; 
 			}
-/*
+
 		|	mem_dcls ';'
 			{
-				/ *
+				/*
 				* This rule is not in the internal grammar
 				* so we have to fake it.
-				* /
+				*/
 				$$ = tmknode(GEN_MEMBER, 0,
 				  tmknode(GEN_CLASSTYPES, CLASSTYPES_NORMAL,
 				    tmkleaf(GEN_CLASSTYPE, CLASSTYPE_INT,
@@ -815,7 +822,7 @@ member:
 				$1);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-*/
+
 		;
 mem_dcls:
 			mem_dcl
@@ -1043,6 +1050,7 @@ d_i_term:
 					FUNC_SPEC_E_ANSI, $1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
+		|       { $$ = NULL;}
 		;
 init_list:
 			init_item

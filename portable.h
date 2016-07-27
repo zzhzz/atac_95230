@@ -94,6 +94,7 @@ static const char portable_h[] =
 #include <stdio.h>			/* Used to check for system V */
 #endif
 
+#include <stdlib.h>
 /* Standard types */
 typedef int		boolean;	/* >= 16 bits used as boolean	*/
 typedef char		flag;		/* >= 8  bits used as boolean	*/

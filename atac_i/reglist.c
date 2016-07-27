@@ -47,6 +47,7 @@ ist.c
 *-----------------------------------------------end of log
 */
 #include <stdio.h>
+#include <stdlib.h>
 #include "portable.h"
 
 typedef struct node {

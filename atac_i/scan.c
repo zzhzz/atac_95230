@@ -27,9 +27,7 @@ MODULEID(%M%,%J%/%D%/%T%)
 #include "scan.h"
 #include "tnode.h"	/* Pgram.h needs it */
 #include "Pgram.h"
-
 #define DEBUG 0
-
 static char const scan_c[] = 
 	"$Header: /u/saul/atac/src/atac_i/RCS/scan.c,v 3.9 94/04/04 10:13:59 jrh Exp $";
 /*
@@ -734,21 +732,21 @@ scan_pushScope()
 int
 scan_popScope()
 {
-    int		t;
+    int		*t;
     typeFix_t	*typeFix;
 
     if (typeFixList) {
-	for (t = 0; list_next(typeFixList, &t, &typeFix);) {
+	for (t = 0; list_next(typeFixList, t, &typeFix);) {
 	    *typeFix->idType = typeFix->oldType;
 	    free(typeFix);
-	    list_delete(typeFixList, &t);
+	    list_delete(typeFixList, t);
 	}
 	list_free(typeFixList, NULL);
     }
 
-    t = 0;
-    if (list_prev(scopeList, &t, &typeFixList)) {
-	list_delete(scopeList, &t);
+    t = NULL;
+    if (list_prev(scopeList, t, &typeFixList)) {
+	list_delete(scopeList, t);
 	return 1;
     } else {
 	typeFixList = 0;
@@ -1087,20 +1085,22 @@ yylex()
     /*
     * Single character self representing tokens.
     */
-    case TOK_LPAREN:
-    case TOK_RPAREN:
-    case TOK_COMMA:
-    case TOK_COLON:
-    case TOK_SEMICOLON:
-    case TOK_QMARK:
-    case TOK_LSQUARE:
-    case TOK_RSQUARE:
-    case TOK_LCURLY:
-    case TOK_RCURLY:
-    case TOK_TILDE:
-	value = charType;
+    case TOK_LPAREN: value = '(';break;
+    case TOK_RPAREN: value = ')';break;
+    case TOK_COMMA:  value = ',';break;
+    case TOK_COLON:  value = ':';break;
+    case TOK_SEMICOLON: value = ';';break;
+    case TOK_QMARK:  value = '"';break;
+    case TOK_LSQUARE: value = '[';break;
+    case TOK_RSQUARE: value = ']';break;
+    case TOK_LCURLY: value = '{';break;
+    case TOK_RCURLY: value = '}';break;
+    case TOK_TILDE: value = '~';break; 
+/*	{
+		value = charType;
+	}
 	break;
-
+*/
     case DIGIT:
         {
 	    int i = 0;
@@ -1121,8 +1121,7 @@ yylex()
 
 	    /*
 	    * Check for suffix (x, X, l, L, u, U, ., e, E, f, F).
-	    */
-	    if (charType == TOK_PERIOD || charType == LETTER) {
+	    */ if (charType == TOK_PERIOD || charType == LETTER) {
 		value = scanNumber(srcin, i, c);
 	    } else {
 		buf[i] = '\0';
@@ -1230,7 +1229,7 @@ yylex()
 	    }
 	    if (value == 0) {
 		ungetc(nextC, srcin); --src.col;
-		value = charType;
+		value = c;
 	    }
 	}
 	break;

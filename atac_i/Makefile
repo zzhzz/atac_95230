@@ -131,6 +131,7 @@ system:	atac_i
 clean:
 		rm -f $(OBJ) $(PARSER_OBJ)
 		rm -f atac_i parser scan_test Pgram.c Pgram.h
+		rm *~
 
 atac_i:	$(OBJ) $(PARSER_OBJ)
 	$(CC) $(CFLAGS) $(OBJ) $(PARSER_OBJ) -o atac_i
@@ -177,7 +178,7 @@ Pgram.o:	Pgram.c srcpos.h scan.h tnode.h tree.h $(INCLUDES)/portable.h
 		$(CC) -c -D'YYMAXDEPTH=200' $(CFLAGS) Pgram.c
 
 Pgram.h Pgram.c:	Pgram.y
-		yacc -d Pgram.y
+		bison -ytd Pgram.y
 		mv y.tab.h Pgram.h
 		mv y.tab.c Pgram.c
 
@@ -194,7 +195,7 @@ scan_test:	scan.o scan_test.o table.o strtab.o srcpos.o error.o list.o	\
 		$(CC) scan.o scan_test.o strtab.o table.o srcpos.o list.o	\
 			error.o upfix.o filestamp.o -o scan_test
 
-scantest.o:	srcpos.h scan.c y.tab.h tnode.h $(INCLUDES)/portable.h
+scantest.o:	srcpos.h scan.c Pgram.h tnode.h $(INCLUDES)/portable.h
 
 list.o:		list.c $(INCLUDES)/portable.h
 

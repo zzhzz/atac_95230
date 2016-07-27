@@ -4,6 +4,10 @@
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
+
+#ifndef __STDC__
+#define __STDC__
+#endif
 /* C Compatible Compiler Preprocessor (CCCP)
    Copyright (C) 1986, 87, 89, 92, 93, 94, 1995 Free Software Foundation, Inc.
 		    Written by Paul Rubin, June 1986
@@ -272,17 +276,18 @@ my_bzero (b, length)
 # endif
 #endif
 
-#if defined (__STDC__) && defined (HAVE_VPRINTF)
+#ifdef __STDC__ 
 # include <stdarg.h>
 # define VA_START(va_list, var) va_start (va_list, var)
 # define PRINTF_ALIST(msg) char *msg, ...
 # define PRINTF_DCL(msg)
 # define PRINTF_PROTO(ARGS, m, n) PROTO (ARGS) __attribute__ ((format (printf, m, n)))
+/*
 #else
 # include <varargs.h>
 # define VA_START(va_list, var) va_start (va_list)
-# define PRINTF_ALIST(msg) msg, va_alist
-# define PRINTF_DCL(msg) char *msg; va_dcl
+# define PRINTF_ALIST(msg) msg,va_alist
+# define PRINTF_DCL(msg) char *msg;va_dcl
 # define PRINTF_PROTO(ARGS, m, n) () __attribute__ ((format (printf, m, n)))
 # define vfprintf(file, msg, args) \
     { \
@@ -292,6 +297,7 @@ my_bzero (b, length)
       char *a3 = va_arg(args, char *); \
       fprintf (file, msg, a0, a1, a2, a3); \
     }
+*/
 #endif
 
 #define PRINTF_PROTO_1(ARGS) PRINTF_PROTO(ARGS, 1, 2)
@@ -9609,7 +9615,7 @@ vwarning (msg, args)
 }
 
 static void
-#if defined (__STDC__) && defined (HAVE_VPRINTF)
+#ifdef __STDC__
 error_with_line (int line, PRINTF_ALIST (msg))
 #else
 error_with_line (line, PRINTF_ALIST (msg))
@@ -9695,7 +9701,7 @@ pedwarn (PRINTF_ALIST (msg))
 }
 
 void
-#if defined (__STDC__) && defined (HAVE_VPRINTF)
+#ifdef __STDC__ 
 pedwarn_with_line (int line, PRINTF_ALIST (msg))
 #else
 pedwarn_with_line (line, PRINTF_ALIST (msg))
@@ -9717,7 +9723,7 @@ pedwarn_with_line (line, PRINTF_ALIST (msg))
    giving specified file name and line number, not current.  */
 
 static void
-#if defined (__STDC__) && defined (HAVE_VPRINTF)
+#ifdef __STDC__ 
 pedwarn_with_file_and_line (char *file, int line, PRINTF_ALIST (msg))
 #else
 pedwarn_with_file_and_line (file, line, PRINTF_ALIST (msg))

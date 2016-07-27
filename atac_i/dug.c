@@ -89,7 +89,7 @@ static char dug_c[] =
 #include "sym.h"
 #include "dug.h"
 #include "version.h"
-
+/*#define DEBUG 1*/
 /* forward declarations */
 void dug_var_table();
 DU *du_use_type();
@@ -336,9 +336,8 @@ BLOCK	*block;
 int	ref_type;
 int	parse_pos;
 {
-	int	i;
 	DU	*du;
-
+	double     i;	
 #ifdef DEBUG
 	if (dug->magic != DUG_MAGIC)
 		internal_error(NULL, "dug_du: dug memory corrupted\n");
@@ -348,7 +347,7 @@ int	parse_pos;
 	if (block->magic != DUG_MAGIC)
 		internal_error(NULL, "dug_du: block memory corrupted\n");
 #endif
-
+	
 	/*
 	* If symbol already there with same DREF setting, OR ref_types together.
 	* Omit C-USE if symbol previously defined at the same node (because
@@ -544,8 +543,8 @@ static void
 var_clean(dug)
 DUG	*dug;
 {
-	int	i;
-	int	j;
+	double	i;
+	double	j;
 	BLOCK	*node;
 	DU	*du;
 	int	var_count;
@@ -671,7 +670,7 @@ DUG	*dug;
 #endif
 		    if (r->to->parse_start && r->to->parse_end) continue;
 		    if (list_next(r->to->du_list, NULL, NULL)) {
-			int	i;
+			double	i;
 			DU	*du;
 			extern SYM decis_sym;
 			
@@ -741,8 +740,8 @@ char	*prefix;
 FILE	*f;
 {
 	static	first_call = 1;
-	int	i;
-	int	j;
+	double	i;
+	double	j;
 	BLOCK	*node;
 	DU	*du;
 	int	du_count;
