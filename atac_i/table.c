@@ -12,15 +12,35 @@
 *OF THIS MATERIAL FOR ANY PURPOSE.  IT IS PROVIDED "AS IS",
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef MVS
 #include <mvapts.h>
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char table_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/table.c,v 3.3 94/04/04 10:14:49 jrh Exp $";
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+static const char table_c[] = "$Id: table.c,v 3.9 2013/12/08 17:53:12 tom Exp $";
 /*
-*-----------------------------------------------$Log:	table.c,v $
+* @Log: table.c,v @
+* Revision 3.8  1997/11/03 00:03:23  tom
+* correct some places in the last changes where we need a pointer to int.
+*
+* Revision 3.6  1997/05/11 20:56:12  tom
+* rename DATA to TABLE_DATATYPE
+*
+* Revision 3.5  1997/05/10 20:48:41  tom
+* split-out table.h
+*
+* Revision 3.4  1996/11/13 00:42:17  tom
+* change ident to 'const' to quiet gcc
+* add forward-ref prototypes
+*
 * Revision 3.3  94/04/04  10:14:49  jrh
 * Add Release Copyright
 * 
@@ -45,82 +65,65 @@ static char table_c[] =
 * Revision 2.1  91/06/13  12:39:26  saul
 * Propagate to version 2.0
 * 
- * Revision 1.1  91/06/12  20:25:53  saul
- * Aug 1990 baseline
- * 
+* Revision 1.1  91/06/12  20:25:53  saul
+* Aug 1990 baseline
+* 
 *-----------------------------------------------end of log
 */
+#if HAVE_STDLIB_H
+#include <stdlib.h>
+#endif
 #include <stdio.h>
 #include "portable.h"
+#include "table.h"
 
-typedef	int DATA;
+static void tree_free(NODE * tree, void (*datafree) (TABLE_DATATYPE *));
 
-typedef struct node {
-	DATA		*data;
-	struct node	*left;
-	struct node	*right;
-	struct node	*up;
-} NODE;
-
-typedef struct {
-	NODE	*tree;
-	int	(*cmp)();
-} TABLE;
-
-/* forward declarations */
-DATA *table_insert();
-DATA *table_next();
-DATA *table_find();
-static void tree_free();
-void table_free();
-TABLE *table_create();
-int intcmp();
-
+	/* dummy integer compare routine */
 int
-intcmp(a, b)	/* dummy integer compare routine */
-int a;
-int b;
+intcmp(int a,
+       int b)
 {
-	return a - b;
+    return a - b;
 }
 
 TABLE *
-table_create(cmp)
-int	(*cmp)();
+table_create(CMP cmp)
 {
-	TABLE *r;
+    TABLE *r;
 
-	r = (TABLE *)malloc(sizeof *r);
-	if (r == NULL) return NULL;		/* out of memory */
+    r = (TABLE *) malloc(sizeof *r);
+    if (r == NULL)
+	return NULL;		/* out of memory */
 
-	r->cmp = cmp;
-	r->tree = NULL;
+    r->cmp = cmp;
+    r->tree = NULL;
 
-	return r;
+    return r;
 }
 
 void
-table_free(table, datafree)
-TABLE	*table;
-void	(*datafree)();
+table_free(TABLE * table,
+	   void (*datafree) (TABLE_DATATYPE *))
 {
-	if (table == NULL) return;		/* no table */
+    if (table == NULL)
+	return;			/* no table */
 
-	tree_free(table->tree, datafree);
-	free(table);
+    tree_free(table->tree, datafree);
+    free(table);
 }
 
 static void
-tree_free(tree, datafree)
-NODE	*tree;
-void	(*datafree)();
+tree_free(NODE * tree,
+	  void (*datafree) (TABLE_DATATYPE *))
 {
-	if (tree) {
-		tree_free(tree->left, datafree);
-		tree_free(tree->right, datafree);
-		if (datafree) (*datafree)(tree->data);
-		free(tree);
-	}
+    if (tree) {
+	tree_free(tree->left, datafree);
+	tree_free(tree->right, datafree);
+	if (datafree)
+	    (*datafree) (tree->data);
+	free(tree);
+    }
 }
 
 /*
@@ -132,121 +135,133 @@ void	(*datafree)();
 *	Matchtype may be OR'ed with REVERSE to reverse the ordering
 *	(not implemented).
 */
-DATA *					/* return pointer to data found */
-table_find(table, key, node, matchtype)
-TABLE	*table;
-DATA	*key;
-NODE	**node;
-int	matchtype;	/* not implemented */
+TABLE_DATATYPE *		/* return pointer to data found */
+table_find(TABLE * table,
+	   TABLE_DATATYPE * key,
+	   NODE ** node,
+	   int matchtype)	/* not implemented */
 {
-	NODE	*n;
-	NODE	*next;
-	int	c;
-	int	(*cmp)();
-	DATA 	*table_next();
+    NODE *n;
+    NODE *next;
+    int c;
+    CMP cmp;
 
-	if (matchtype != 0) return NULL;
+    if (matchtype != 0)
+	return NULL;
 
-	if (table == NULL) return NULL;		/* no table */
+    if (table == NULL)
+	return NULL;		/* no table */
 
-	cmp = table->cmp;
+    cmp = table->cmp;
 
-	if (node && *node) {
-		n = *node;
-		if (table_next(table, &n) == NULL)
-			return NULL;		/* no next after node */
-		if (cmp == NULL)
-			c = (int)key - *n->data;
-		else if (cmp == intcmp)
-			c = (int)key - (int)n->data;
-		else c = (*cmp)(key, n->data);
-		if (c) return NULL;		/* no match */
-		*node = n;
-		return n->data;			/* match */
-	}
-
-	for (n = table->tree; n != NULL; n = next) {
-		if (cmp)
-			c = (*cmp)(key, n->data);
-		else c = (int)key - *n->data;
-		if (c < 0) next = n->left;
-		else
-		if (c > 0) next = n->right;
-		else {
-			if (node) *node = n;
-			return n->data;
-		}
-	}
-	return NULL;				/* not found */
-}
-
-DATA *					/* return pointer to data found */
-table_next(table, node)
-TABLE	*table;
-NODE	**node;
-{
-	NODE	*n;
-
-	if (table == NULL || node == NULL) return NULL;
-
+    if (node && *node) {
 	n = *node;
-
-	if (n == NULL) {
-		n = table->tree;
-		if (n) while (n->left) n = n->left;
-	}
-	else if (n->right) {
-		n = n->right;
-		while (n->left) n = n->left;
-	} else {
-		while (n->up && n->up->right == n) n = n->up;
-		n = n->up;
-	}
-
+	if (table_next(table, &n) == NULL)
+	    return NULL;	/* no next after node */
+	if (cmp == NULL)
+	    c = (int) key - *(int *) (n->data);
+	else if (cmp == (CMP) intcmp)
+	    c = (int) key - (int) (n->data);
+	else
+	    c = (*cmp) (key, (n->data));
+	if (c)
+	    return NULL;	/* no match */
 	*node = n;
-	if (n) return n->data;
-	else return NULL;
+	return n->data;		/* match */
+    }
+
+    for (n = table->tree; n != NULL; n = next) {
+	if (cmp)
+	    c = (*cmp) (key, n->data);
+	else
+	    c = (int) key - *(int *) (n->data);
+	if (c < 0)
+	    next = n->left;
+	else if (c > 0)
+	    next = n->right;
+	else {
+	    if (node)
+		*node = n;
+	    return n->data;
+	}
+    }
+    return 0;			/* not found */
 }
 
-DATA *
-table_insert(table, data, duplicates)
-TABLE	*table;
-DATA	*data;
-int	duplicates;
+TABLE_DATATYPE *		/* return pointer to data found */
+table_next(TABLE * table,
+	   NODE ** node)
 {
-	NODE	*n;
-	NODE	**next;
-	NODE	*prev;
-	int	c;
-	int	(*cmp)();
+    NODE *n;
 
-	if (table == NULL) return NULL;			/* no table */
+    if (table == NULL || node == NULL)
+	return NULL;
 
-	cmp = table->cmp;
+    n = *node;
 
-	prev = NULL;
-	next = &table->tree;
-	for (n = table->tree; n != NULL; n = *next) {
-		if (cmp == NULL)
-		 	c = *data - *n->data;
-		else if (cmp == intcmp)
-			c = (int)data - (int)n->data;
-		else c = (*cmp)(data, n->data);
-		if (c < 0) next = &n->left;
-		else
-		if (c > 0 || duplicates) next = &n->right;
-		else
-		return NULL;		/* duplicate */
-		prev = n;
-	}
+    if (n == NULL) {
+	n = table->tree;
+	if (n)
+	    while (n->left)
+		n = n->left;
+    } else if (n->right) {
+	n = n->right;
+	while (n->left)
+	    n = n->left;
+    } else {
+	while (n->up && n->up->right == n)
+	    n = n->up;
+	n = n->up;
+    }
 
-	n = (NODE *)malloc(sizeof *n);
-	if (n == NULL) return NULL;	/* out of memory */
+    *node = n;
+    if (n != 0)
+	return n->data;
+    return 0;
+}
 
-	*next = n;
-	n->data = data;
-	n->left = NULL;
-	n->right = NULL;
-	n->up = prev;
-	return data;
+TABLE_DATATYPE *
+table_insert(TABLE * table,
+	     TABLE_DATATYPE * data,
+	     int duplicates)
+{
+    NODE *n;
+    NODE **next;
+    NODE *prev;
+    int c;
+    CMP cmp;
+
+    if (table == NULL)
+	return NULL;		/* no table */
+
+    cmp = table->cmp;
+
+    prev = NULL;
+    next = &table->tree;
+    for (n = table->tree; n != NULL; n = *next) {
+	if (cmp == 0)
+	    c = *(int *) (data) - *(int *) (n->data);
+	else if (cmp == (CMP) intcmp)
+	    c = (int) data - (int) (n->data);
+	else
+	    c = (*cmp) (data, n->data);
+	if (c < 0)
+	    next = &n->left;
+	else if (c > 0 || duplicates)
+	    next = &n->right;
+	else
+	    return NULL;	/* duplicate */
+	prev = n;
+    }
+
+    n = (NODE *) malloc(sizeof *n);
+    if (n == NULL)
+	return NULL;		/* out of memory */
+
+    *next = n;
+    n->data = data;
+    n->left = NULL;
+    n->right = NULL;
+    n->up = prev;
+    return data;
 }

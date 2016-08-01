@@ -29,12 +29,16 @@ Boston, MA 02111-1307, USA.
 #include <setjmp.h>
 /* #define YYDEBUG 1 */
 
-#ifdef MULTIBYTE_CHARS
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+
+#ifdef MULTIBYTE_CHARS
 #include <locale.h>
 #endif
 
 #include <stdio.h>
+#include <string.h>
 
 typedef unsigned char U_CHAR;
 
@@ -452,7 +456,7 @@ parse_number (olen)
     if (largest_digit < digit)
       largest_digit = digit;
     nd = n * base + digit;
-    overflow |= ULONG_MAX_over_base < n | nd < n;
+    overflow |= (ULONG_MAX_over_base < n) | (nd < n);
     n = nd;
   }
 
@@ -521,7 +525,7 @@ yylex ()
 	lexptr += 2;
 	if (toktab->token == ERROR)
 	  {
-	    char *buf = (char *) alloca (40);
+	    char *buf = (char *) malloc (40);
 	    sprintf (buf, "`%s' not allowed in operand of `#if'", toktab->operator);
 	    yyerror (buf);
 	  }
@@ -581,7 +585,7 @@ yylex ()
       register num_chars = 0;
       unsigned width = MAX_CHAR_TYPE_SIZE;
       int max_chars;
-      char *token_buffer;
+      char *token_buffer = 0;
 
       if (wide_flag)
 	{
@@ -595,7 +599,7 @@ yylex ()
       else
 	max_chars = MAX_LONG_TYPE_SIZE / width;
 
-      token_buffer = (char *) alloca (max_chars + 1);
+      token_buffer = (char *) malloc (max_chars + 1);
 
       while (1)
 	{
@@ -672,6 +676,8 @@ yylex ()
 #endif
 	  yylval.integer.value = result;
 	}
+    	if (token_buffer != 0)
+	  free(token_buffer);
     }
 
     /* This is always a signed type.  */

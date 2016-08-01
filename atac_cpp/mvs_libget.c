@@ -13,9 +13,12 @@
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
 static char mvs_libget_c[] = 
-	"$Header: /u/saul/atac/src/atac_cpp/RCS/mvs_libget.c,v 1.2 94/04/04 10:22:12 jrh Exp $";
+	"$Header: /usr/build/atac/atac/atac_cpp/RCS/mvs_libget.c,v 1.2 1994/04/04 10:22:12 jrh Exp $";
 /*
-*-----------------------------------------------$Log:	mvs_libget.c,v $
+*$Log: mvs_libget.c,v $
+*Revision 1.2  1994/04/04 10:22:12  jrh
+*FROM_KEYS
+*
 *Revision 1.2  94/04/04  10:22:12  jrh
 *Add Release Copyright
 *

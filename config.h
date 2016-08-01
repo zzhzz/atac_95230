@@ -1,7 +1,7 @@
 /*
  * Configuration parameters for ATAC
- * Host: Linux localhost 4.4.1-2-ARCH #1 SMP PREEMPT Wed Feb 3 13:12:33 UTC 2016 x86_64 GNU/Linux
- * Date: Wed Jul 20 19:55:39 CST 2016
+ * Host: Linux zzhzz-ThinkPad 4.4.0-31-generic #50-Ubuntu SMP Wed Jul 13 00:07:12 UTC 2016 x86_64 x86_64 x86_64 GNU/Linux
+ * Date: 2016年 07月 27日 星期三 10:25:55 CST
  */
 
 #define BITS_PER_UNIT	8

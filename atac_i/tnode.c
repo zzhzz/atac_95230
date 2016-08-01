@@ -12,113 +12,129 @@
 *OF THIS MATERIAL FOR ANY PURPOSE.  IT IS PROVIDED "AS IS",
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef MVS
 #include <mvapts.h>
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char tnode_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/tnode.c,v 3.3 94/04/04 10:14:56 jrh Exp $";
+static const char tnode_c[] =
+"$Header: /usr/build/atac/atac-20131208/atac_i/RCS/tnode.c,v 3.7 2013/12/08 18:52:35 tom Exp $";
 /*
-*-----------------------------------------------$Log:	tnode.c,v $
-*Revision 3.3  94/04/04  10:14:56  jrh
-*Add Release Copyright
+* @Log: tnode.c,v @
+* Revision 3.6  2008/12/17 00:23:35  tom
+* convert to ANSI, indent'd
 *
-*Revision 3.2  93/08/04  15:48:36  ewk
-*Added MVS and solaris support.  Squelched some ANSI warnings.
+* Revision 3.5  1997/05/10 23:20:26  tom
+* absorb srcpos.h into error.h
 *
-e.c
-*Revision 3.1  93/07/12  11:47:19  saul
-*MVS MODULEID
+* Revision 3.4  1996/11/13 00:41:17  tom
+* change ident to 'const' to quiet gcc
+* add forward-ref prototypes
 *
-*Revision 3.0  92/11/06  07:45:44  saul
-*propagate to version 3.0
+* Revision 3.3  94/04/04  10:14:56  jrh
+* Add Release Copyright
 *
-*Revision 2.2  92/10/30  09:49:18  saul
-*include portable.h
+* Revision 3.2  93/08/04  15:48:36  ewk
+* Added MVS and solaris support.  Squelched some ANSI warnings.
 *
-*Revision 2.1  92/09/30  10:38:35  saul
+* Revision 3.1  93/07/12  11:47:19  saul
+* MVS MODULEID
+*
+* Revision 3.0  92/11/06  07:45:44  saul
+* propagate to version 3.0
+*
+* Revision 2.2  92/10/30  09:49:18  saul
+* include portable.h
+*
+* Revision 2.1  92/09/30  10:38:35  saul
 **** empty log message ***
 *
 *-----------------------------------------------end of log
 */
 #include <stdio.h>
 #include "portable.h"
-#include "srcpos.h"
+#include "error.h"
 #include "tnode.h"
 
 /* forward declarations */
-void check_malloc();
-TNODE *tnext();
-TNODE *child4();
-TNODE *child3();
-TNODE *child2();
-TNODE *child1();
-TNODE *child0();
+void check_malloc(char *p);
+
+#define macro_n my_macro_n	/* avoid compiler "shadow" warnings */
 
 TNODE *
-child0(n)
-TNODE *n;
+child0(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n)->down,
-	    macro_n ? macro_n->over : (TNODE *)NULL);
+	    (macro_n
+	     ? macro_n->over
+	     : (TNODE *) NULL));
 }
 
 TNODE *
-child1(n)
-TNODE *n;
+child1(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n)->down,
-	    macro_n ? macro_n->over->over : (TNODE *)NULL);
+	    (macro_n
+	     ? macro_n->over->over
+	     : (TNODE *) NULL));
 }
 
 TNODE *
-child2(n)
-TNODE *n;
+child2(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n)->down,
-	macro_n ? macro_n->over->over->over : (TNODE *)NULL);
+	    (macro_n
+	     ? macro_n->over->over->over
+	     : (TNODE *) NULL));
 }
 
 TNODE *
-child3(n)
-TNODE *n;
+child3(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n)->down,
-	macro_n ? macro_n->over->over->over->over : (TNODE *)NULL);
+	    (macro_n
+	     ? macro_n->over->over->over->over
+	     : (TNODE *) NULL));
 }
 
 TNODE *
-child4(n)
-TNODE *n;
+child4(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n)->down,
-	macro_n ? macro_n->over->over->over->over->over : (TNODE *)NULL);
+	    (macro_n
+	     ? macro_n->over->over->over->over->over
+	     : (TNODE *) NULL));
 }
 
 TNODE *
-tnext(n)
-TNODE *n;
+tnext(TNODE * n)
 {
     TNODE *macro_n;
 
     return (macro_n = (n),
-	macro_n->up->down == macro_n ? (TNODE *)NULL : macro_n->over);
+	    ((macro_n->up->down == macro_n)
+	     ? (TNODE *) NULL
+	     : macro_n->over));
 }
 
 void
-check_malloc(p)
-char *p;
+check_malloc(char *p)
 {
-    if (p == NULL) internal_error(NULL, "Out of memory");
+    if (p == NULL) {
+	internal_error(NULL, "Out of memory");
+    }
 }

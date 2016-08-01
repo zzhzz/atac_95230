@@ -12,15 +12,37 @@
 *OF THIS MATERIAL FOR ANY PURPOSE.  IT IS PROVIDED "AS IS",
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef MVS
 #include <mvapts.h>
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char srcpos_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/srcpos.c,v 3.3 94/04/04 10:14:15 jrh Exp $";
+static const char srcpos_c[] = "$Id: srcpos.c,v 3.10 2013/12/08 18:40:17 tom Exp $";
 /*
-*-----------------------------------------------$Log:	srcpos.c,v $
+* @Log: srcpos.c,v @
+* Revision 3.9  2005/08/14 13:43:57  tom
+* gcc warnings
+*
+* Revision 3.8  1998/09/19 15:31:56  tom
+* spell out line and col words for clarity in the source-position
+*
+* Revision 3.7  1997/05/12 00:34:05  tom
+* remove redundant prototypes
+*
+* Revision 3.6  1997/05/10 23:19:59  tom
+* absorb srcpos.h into error.h
+*
+* Revision 3.5  1996/11/12 23:02:07  tom
+* change ident to 'const' to quiet gcc
+* add forward-ref prototypes
+*
+* Revision 3.4  1995/12/27 23:32:19  tom
+* don't use NULL for int value!
+*
 * Revision 3.3  94/04/04  10:14:15  jrh
 * Add Release Copyright
 * 
@@ -51,18 +73,9 @@ static char srcpos_c[] =
  * 
 *-----------------------------------------------end of log
 */
-#include <stdio.h>
 #include "portable.h"
-#include "srcpos.h"
+#include "error.h"
 #include "tnode.h"
-
-/* forward declarations */
-void node_isrcpos();
-int srcfstamp();
-char *srcfname();
-int store_filename();
-void node_srcpos();
-void print_srcpos();
 
 #define CHECK_MALLOC(p) ((p)?1:internal_error(NULL, "Out of memory\n"))
 
@@ -71,44 +84,45 @@ void print_srcpos();
 static char **filenames = NULL;
 static int *stamps = NULL;
 static int n_filenames = 0;
-static fname_buf_size = 0;
+static int fname_buf_size = 0;
 
 void
-print_srcpos(srcpos, f)
-SRCPOS	*srcpos;
-FILE	*f;
+print_srcpos(SRCPOS * srcpos,
+	     FILE *f)
 {
-	char *fname;
+    char *fname;
 
-	if (srcpos == NULL) {
-		fputs("?", f);
-		return;
-	}
+    if (srcpos == NULL) {
+	fputs("?", f);
+	return;
+    }
 
-	if (srcpos->file < 0)
-		fname = "\"\"";
-	else if (srcpos->file >= n_filenames)
-		fname = "\"?\"";
-	else fname = filenames[srcpos->file];
+    if (srcpos->file < 0) {
+	fname = "\"\"";
+    } else if (srcpos->file >= n_filenames) {
+	fname = "\"?\"";
+    } else {
+	fname = filenames[srcpos->file];
+    }
 
-	fprintf(f, "%s%d,%d", fname, srcpos->line, srcpos->col);
+    fprintf(f, "%s, line %d, col %d", fname, srcpos->line, srcpos->col);
 }
 
 void
 node_srcpos(node, left, f)
-TNODE	*node;
-int	left;
-FILE	*f;
+     TNODE *node;
+     int left;
+     FILE *f;
 {
-	if (node == NULL) {
-		fprintf(f, "?");
-		return;
-	}
+    if (node == NULL) {
+	fprintf(f, "?");
+	return;
+    }
 
-	if (left)
-		print_srcpos(&node->srcpos[LEFT_SRCPOS], f);
-	else
-		print_srcpos(&node->srcpos[RIGHT_SRCPOS], f);
+    if (left)
+	print_srcpos(&node->srcpos[LEFT_SRCPOS], f);
+    else
+	print_srcpos(&node->srcpos[RIGHT_SRCPOS], f);
 }
 
 /*
@@ -116,85 +130,84 @@ FILE	*f;
 *	NOTE: filename is not copied.
 */
 int
-store_filename(s)
-char *s;
+store_filename(char *s)
 {
-	int	i;
-	char	*p;
+    int i;
+    char *p;
 
-	/*
-	* If already in table return location.
-	*/
-	for (i=0; i < n_filenames; ++i)
-		if (strcmp(s, filenames[i]) == 0)
-			return i;
+    /*
+     * If already in table return location.
+     */
+    for (i = 0; i < n_filenames; ++i)
+	if (strcmp(s, filenames[i]) == 0)
+	    return i;
 
-	/*
-	* Inlarge table if necessary.
-	*/
-	if (fname_buf_size <= n_filenames) {
-		fname_buf_size += FNAME_BUF_SIZE;
-		if (filenames) {
-			filenames = (char **)realloc(filenames,
-				sizeof *filenames * fname_buf_size);
-			stamps = (int *)realloc(stamps,
-				sizeof *stamps * fname_buf_size);
-		} else {
-			filenames = (char  **)
-				malloc(sizeof *filenames * fname_buf_size);
-			stamps = (int  *)
-				malloc(sizeof *stamps * fname_buf_size);
-		}
-		CHECK_MALLOC(filenames);
-		CHECK_MALLOC(stamps);
+    /*
+     * Inlarge table if necessary.
+     */
+    if (fname_buf_size <= n_filenames) {
+	fname_buf_size += FNAME_BUF_SIZE;
+	if (filenames) {
+	    filenames = (char **) realloc(filenames,
+					  sizeof *filenames * fname_buf_size);
+	    stamps = (int *) realloc(stamps,
+				     sizeof *stamps * fname_buf_size);
+	} else {
+	    filenames = (char **)
+		malloc(sizeof *filenames * fname_buf_size);
+	    stamps = (int *)
+		malloc(sizeof *stamps * fname_buf_size);
 	}
+	CHECK_MALLOC(filenames);
+	CHECK_MALLOC(stamps);
+    }
 
-	filenames[n_filenames] = s;
-	if (*s == '"' && *(p = s + strlen(s) - 1) == '"') {
-		/*
-		* Kludge to temporarily get rid of enclosing quotes.
-		*/
-		*p = '\0';
-		stamps[n_filenames] = filestamp(s+1);
-		*p = '"';
-	} else stamps[n_filenames] = filestamp(s);
+    filenames[n_filenames] = s;
+    if (*s == '"' && *(p = s + strlen(s) - 1) == '"') {
+	/*
+	 * Kludge to temporarily get rid of enclosing quotes.
+	 */
+	*p = '\0';
+	stamps[n_filenames] = filestamp(s + 1);
+	*p = '"';
+    } else
+	stamps[n_filenames] = filestamp(s);
 
-	return n_filenames++;
+    return n_filenames++;
 }
 
 char *
-srcfname(findex)
-int	findex;
+srcfname(int findex)
 {
-	if (findex < 0 || findex >= n_filenames) return NULL;
-	return filenames[findex];
+    if (findex < 0 || findex >= n_filenames)
+	return NULL;
+    return filenames[findex];
 }
 
 int
-srcfstamp(findex)
-int	findex;
+srcfstamp(int findex)
 {
-	if (findex < 0 || findex >= n_filenames) return 0;
-	return stamps[findex];
+    if (findex < 0 || findex >= n_filenames)
+	return 0;
+    return stamps[findex];
 }
 
 void
-node_isrcpos(node, left, f)	/* MVS */
-TNODE	*node;
-int	left;
-FILE	*f;
+node_isrcpos(TNODE * node,
+	     int left,
+	     FILE *f)
 {
-	SRCPOS	*srcpos;
+    SRCPOS *srcpos;
 
-	if (node == NULL) {
-		fprintf(f, " 0 0 0");
-		return;
-	}
+    if (node == NULL) {
+	fprintf(f, " 0 0 0");
+	return;
+    }
 
-	if (left)
-		srcpos = &node->srcpos[LEFT_SRCPOS];
-	else
-		srcpos = &node->srcpos[RIGHT_SRCPOS];
+    if (left)
+	srcpos = &node->srcpos[LEFT_SRCPOS];
+    else
+	srcpos = &node->srcpos[RIGHT_SRCPOS];
 
-	fprintf(f, " %d %d %d", srcpos->file, srcpos->line, srcpos->col);
+    fprintf(f, " %d %d %d", srcpos->file, srcpos->line, srcpos->col);
 }

@@ -18,9 +18,12 @@ MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
 static char version_c[] = 
-	"$Header: /u/saul/atac/src/atac_cpp/RCS/version.c,v 3.2 94/04/04 10:22:41 jrh Exp $";
+	"$Header: /usr/build/atac/atac/atac_cpp/RCS/version.c,v 3.2 1994/04/04 10:22:41 jrh Exp $";
 /*
-*-----------------------------------------------$Log:	version.c,v $
+*$Log: version.c,v $
+*Revision 3.2  1994/04/04 10:22:41  jrh
+*FROM_KEYS
+*
 * Revision 3.2  94/04/04  10:22:41  jrh
 * Add Release Copyright
 * 

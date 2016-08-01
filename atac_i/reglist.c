@@ -17,117 +17,117 @@
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char reglist_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/reglist.c,v 3.3 94/04/04 10:13:52 jrh Exp $";
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+static const char reglist_c[] = "$Id: reglist.c,v 3.6 2013/12/08 17:46:23 tom Exp $";
 /*
-*-----------------------------------------------$Log:	reglist.c,v $
-*Revision 3.3  94/04/04  10:13:52  jrh
-*Add Release Copyright
+* @Log: reglist.c,v @
+* Revision 3.5  1997/05/11 23:06:28  tom
+* split-out reglist.h
 *
-*Revision 3.2  93/08/04  15:47:27  ewk
-*Added MVS and solaris support.  Squelched some ANSI warnings.
+* Revision 3.4  1996/11/13 00:41:37  tom
+* change ident to 'const' to quiet gcc
+* add forward-ref prototypes
 *
-ist.c
-*Revision 3.1  93/07/12  11:14:02  saul
-*MVS MODULEID
-*MVS reglist ==> reglst for 8 char uniqueness
+* Revision 3.3  94/04/04  10:13:52  jrh
+* Add Release Copyright
 *
-*Revision 3.0  92/11/06  07:46:13  saul
-*propagate to version 3.0
+* Revision 3.2  93/08/04  15:47:27  ewk
+* Added MVS and solaris support.  Squelched some ANSI warnings.
 *
-*Revision 2.3  92/11/02  11:38:49  saul
-*remove unused variables
+* Revision 3.1  93/07/12  11:14:02  saul
+* MVS MODULEID
+* MVS reglist ==> reglst for 8 char uniqueness
 *
-*Revision 2.2  92/10/30  09:48:39  saul
-*include portable.h
+* Revision 3.0  92/11/06  07:46:13  saul
+* propagate to version 3.0
 *
-*Revision 2.1  92/07/10  13:37:54  saul
-*new
+* Revision 2.3  92/11/02  11:38:49  saul
+* remove unused variables
+*
+* Revision 2.2  92/10/30  09:48:39  saul
+* include portable.h
+*
+* Revision 2.1  92/07/10  13:37:54  saul
+* new
 *
 *-----------------------------------------------end of log
 */
-#include <stdio.h>
+#if HAVE_STDLIB_H
 #include <stdlib.h>
+#endif
+#include <stdio.h>
 #include "portable.h"
-
-typedef struct node {
-	void		*data;
-	int		idno;
-	struct node	*left;
-	struct node	*right;
-} NODE;
-
-typedef struct {
-	NODE	*tree;
-	int	idno;
-} REGLST;
+#include "reglist.h"
 
 /* forward declarations */
-int reglst_insert();
-void reglst_free();
-static void tree_free();
-REGLST *reglst_create();
+static void tree_free(REGNODE * tree);
 
 REGLST *
-reglst_create()
+reglst_create(void)
 {
-	REGLST *r;
+    REGLST *r;
 
-	r = (REGLST *)malloc(sizeof *r);
-	if (r == NULL) return NULL;		/* out of memory */
+    r = (REGLST *) malloc(sizeof *r);
+    if (r == NULL)
+	return NULL;		/* out of memory */
 
-	r->tree = NULL;
-	r->idno = 0;
+    r->tree = NULL;
+    r->idno = 0;
 
-	return r;
+    return r;
 }
 
 static void
-tree_free(tree)
-NODE	*tree;
+tree_free(REGNODE * tree)
 {
-	if (tree) {
-		tree_free(tree->left);
-		tree_free(tree->right);
-		free(tree);
-	}
+    if (tree) {
+	tree_free(tree->left);
+	tree_free(tree->right);
+	free(tree);
+    }
 }
 
 void
-reglst_free(reglst)
-REGLST	*reglst;
+reglst_free(REGLST * reglst)
 {
-	if (reglst == NULL) return;		/* no reglst */
+    if (reglst == NULL)
+	return;			/* no reglst */
 
-	tree_free(reglst->tree);
-	free(reglst);
+    tree_free(reglst->tree);
+    free(reglst);
 }
 
 int
-reglst_insert(reglst, data)
-REGLST	*reglst;
-void	*data;
+reglst_insert(REGLST * reglst,
+	      void *data)
 {
-	NODE	*n;
-	NODE	**next;
+    REGNODE *n;
+    REGNODE **next;
 
-	if (reglst == NULL) return -1;		/* no reglst */
+    if (reglst == NULL)
+	return -1;		/* no reglst */
 
-	next = &reglst->tree;
-	for (n = reglst->tree; n != NULL; n = *next) {
-		if (data < n->data) next = &n->left;
-		else
-		if (data > n->data) next = &n->right;
-		else return n->idno;		/* found */
-	}
+    next = &reglst->tree;
+    for (n = reglst->tree; n != NULL; n = *next) {
+	if (data < n->data)
+	    next = &n->left;
+	else if (data > n->data)
+	    next = &n->right;
+	else
+	    return n->idno;	/* found */
+    }
 
-	n = (NODE *)malloc(sizeof *n);
-	if (n == NULL) return -1;	/* out of memory */
+    n = (REGNODE *) malloc(sizeof *n);
+    if (n == NULL)
+	return -1;		/* out of memory */
 
-	*next = n;
-	n->data = data;
-	n->idno = reglst->idno++;
-	n->left = NULL;
-	n->right = NULL;
-	return n->idno;
+    *next = n;
+    n->data = data;
+    n->idno = reglst->idno++;
+    n->left = NULL;
+    n->right = NULL;
+    return n->idno;
 }

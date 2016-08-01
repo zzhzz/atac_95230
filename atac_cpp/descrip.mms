@@ -12,11 +12,14 @@
 #OF THIS MATERIAL FOR ANY PURPOSE.  IT IS PROVIDED "AS IS",
 #WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 #****************************************************************
-#	$Header: /u/saul/atac/src/atac_cpp/RCS/descrip.mms,v 3.2 94/04/04 10:22:55 jrh Exp $
+#	$Header: /usr/build/atac/atac/atac_cpp/RCS/descrip.mms,v 3.2 1994/04/04 10:22:55 jrh Exp $
 #
 # Makefile for VMS.  Use "mms" to build it.
 #
-#-----------------------------------------------$Log:	descrip.mms,v $
+#$Log: descrip.mms,v $
+#Revision 3.2  1994/04/04 10:22:55  jrh
+#FROM_KEYS
+#
 # Revision 3.2  94/04/04  10:22:55  jrh
 # Add Release Copyright
 # 

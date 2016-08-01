@@ -13,17 +13,39 @@
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
 %{
+
 #ifdef MVS
- #pragma csect (CODE, "pgram$")
+#pragma csect (CODE, "pgram$")
 #include <mvapts.h>
 MODULEID(%M%,%J%/%D%/%T%)
 #include <string.h>
 #endif /* MVS */
 
-static char Pgram_y[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/Pgram.y,v 3.6 94/06/01 09:02:58 saul Exp $";
+static char Pgram_y[] =
+"$Header: /usr/build/atac/atac-20131208/atac_i/RCS/Pgram.y,v 3.15 2013/12/08 23:19:59 tom Exp $";
 /*
-*-----------------------------------------------$Log:	Pgram.y,v $
+* @Log: Pgram.y,v @
+* Revision 3.13  1997/12/11 23:34:34  tom
+* remove unused/misleading symbol ENDFILE.
+*
+* Revision 3.11  1997/11/03 19:06:56  tom
+* move <stdio.h> down below the include for config.h so we have const
+* consistently
+*
+* Revision 3.10  1997/05/10 22:17:14  tom
+* absorb srcpos.h into error.h
+*
+* Revision 3.9  1996/11/13 01:26:26  tom
+* undo redefinition of literal-tokens (e.g., ';' vs TOK_SEMICOLON).
+* change def of AUTO to avoid conflict with bison's ENDFILE.
+* add forward-ref prototypes.
+*
+* Revision 3.8  1996/01/11 17:47:36  tom
+* add _something_ to handle ASM case
+*
+* Revision 3.7  1995/12/27 01:35:34  tom
+* handle INLINE, ASM states.  Also declare ATTRIBUTE state.
+*
 * Revision 3.6  94/06/01  09:02:58  saul
 * fix for ANSI f(...) 
 * 
@@ -86,21 +108,24 @@ static char Pgram_y[] =
 * 
 *-----------------------------------------------end of log
 */
-#include <stdio.h>
 #include "portable.h"
-#include "srcpos.h"
+#include <stdio.h>
+#include "error.h"
 #include "scan.h"
 #include "tnode.h"
 #include "tree.h"
 
 /* forward declarations */
-int yyparse();
-static void insertTypeNames();
-int parse();
+extern int yyparse(void);
+static void insertTypeNames(TNODE * node);
 
 static TNODE *tree_root;
 
-static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
+static SRCPOS nosrcpos[2] =
+{
+    {-1, 0, 0},
+    {-1, 0, 0}};
+
 %}
 
 %union {
@@ -111,12 +136,11 @@ static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
 /*
 * Keywords.
 */
-%term <token> AUTO		258
 %term <token> BREAK		259
 %term <token> CASE		260
 %term <token> CHAR_KW		261
 %term <token> CONST		262
-%term <token> CONTINUE	263
+%term <token> CONTINUE		263
 %term <token> DEFAULT		264
 %term <token> DO		265
 %term <token> DOUBLE		266
@@ -129,7 +153,7 @@ static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
 %term <token> IF		273
 %term <token> INT		275
 %term <token> LONG		276
-%term <token> REGISTER	277
+%term <token> REGISTER		277
 %term <token> RETURN		278
 %term <token> SHORT		279
 %term <token> SIGNED		280
@@ -139,47 +163,48 @@ static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
 %term <token> SWITCH		284
 %term <token> TYPEDEF		285
 %term <token> UNION		287
-%term <token> UNSIGNED	288
+%term <token> UNSIGNED		288
 %term <token> VOID		289
-%term <token> VOLATILE	290
+%term <token> VOLATILE		290
 %term <token> WHILE		291
 %term <token> TOK_PACKED	292		/* for MVS */
-%term <token> OFFSET	293
+%term <token> OFFSET		293
 
 %term <token> ASM               294
 %term <token> INLINE            295
 %term <token> ATTRIBUTE         296
+%term <token> AUTO		297
 
-%term <token> '(' 	TOK_LPAREN	501	
-%term <token> ')'	TOK_RPAREN	502	
-%term <token> '['	TOK_LSQUARE	503	
-%term <token> ']'	TOK_RSQUARE	504	
-%term <token> '{'	TOK_LCURLY	505	
-%term <token> '}'	TOK_RCURLY	506	
-%term <token> ','	TOK_COMMA	507	
-%term <token> '='	TOK_EQUALS	508	
-%term <token> '?'	TOK_QMARK	509
-%term <token> ':'	TOK_COLON	510
-%term <token> '|'	TOK_VERTICAL	511
-%term <token> '^'	TOK_CARROT	512
-%term <token> '&'	TOK_AMPER	513
-%term <token> '>'	TOK_GREATER	514
-%term <token> '<'	TOK_LESSER	515
-%term <token> '-'	TOK_DASH	516
-%term <token> '+'	TOK_PLUS	517
-%term <token> '*'	TOK_STAR	518
-%term <token> '%'	TOK_PERCENT	519
-%term <token> '/'	TOK_SLASH	520
-%term <token> '!'	TOK_EXCLAIM	521
-%term <token> '~'	TOK_TILDE	522
-%term <token> '.'	TOK_PERIOD	523
-%term <token> ';'	TOK_SEMICOLON	524
+%term <token> TOK_LPAREN	501
+%term <token> TOK_RPAREN	502
+%term <token> TOK_LSQUARE	503
+%term <token> TOK_RSQUARE	504
+%term <token> TOK_LCURLY	505
+%term <token> TOK_RCURLY	506
+%term <token> TOK_COMMA		507
+%term <token> TOK_EQUALS	508
+%term <token> TOK_QMARK		509
+%term <token> TOK_COLON		510
+%term <token> TOK_VERTICAL	511
+%term <token> TOK_CARROT	512
+%term <token> TOK_AMPER		513
+%term <token> TOK_GREATER	514
+%term <token> TOK_LESSER	515
+%term <token> TOK_PLUS		516
+%term <token> TOK_DASH		517
+%term <token> TOK_STAR		518
+%term <token> TOK_PERCENT	519
+%term <token> TOK_SLASH		520
+%term <token> TOK_EXCLAIM	521
+%term <token> TOK_TILDE		522
+%term <token> TOK_PERIOD	523
+%term <token> TOK_SEMICOLON	524
 
 /*
 * Multi-char. tokens and token groups
 */
 
-%term <token> ELLIPSIS	300
+%term <token> ELLIPSIS		300
 %term <token> ANDAND		303
 %term <token> OROR		304
 %term <token> PLUSPLUS		309
@@ -210,26 +235,25 @@ static SRCPOS nosrcpos[2] = {{-1,0,0}, {-1,0,0}};
 %term <token> STRING		402
 %term <token> ICON		403
 %term <token> FCON		404
-%term ENDFILE			0
 
-%left CHAR_KW DOUBLE ENUM FLOAT INT LONG SHORT STRUCT UNION UNSIGNED VOID ';'
+%left CHAR_KW DOUBLE ENUM FLOAT INT LONG SHORT STRUCT UNION UNSIGNED VOID TOK_SEMICOLON
 %right T_NAME
 %right ELSE
-%left ','
-%right PLUS_EQ MINUS_EQ MUL_EQ DIV_EQ MOD_EQ LS_EQ RS_EQ AND_EQ OR_EQ ER_EQ '='
-%right '?' ':'
+%left TOK_COMMA
+%right PLUS_EQ MINUS_EQ MUL_EQ DIV_EQ MOD_EQ LS_EQ RS_EQ AND_EQ OR_EQ ER_EQ TOK_EQUALS
+%right TOK_QMARK TOK_COLON
 %left OROR
 %left ANDAND
-%left '|'
-%left '^'
-%left '&'
+%left TOK_VERTICAL
+%left TOK_CARROT
+%left TOK_AMPER
 %left EQUAL BANG_EQUAL
-%left GT_EQ LT_EQ '>' '<'
+%left GT_EQ LT_EQ TOK_GREATER TOK_LESSER
 %left LSHIFT RSHIFT
-%left '+' '-'
-%left '*' '%' '/'
-%right '!' '~' PLUSPLUS MINUSMINUS SIZEOF OFFSET
-%left '[' '(' '.' STREF
+%left TOK_PLUS TOK_DASH
+%left TOK_STAR TOK_PERCENT TOK_SLASH
+%right TOK_EXCLAIM TOK_TILDE PLUSPLUS MINUSMINUS SIZEOF OFFSET
+%left TOK_LSQUARE TOK_LPAREN TOK_PERIOD STREF
 
 %type <tnode> ansi_param
 %type <tnode> ansi_params
@@ -364,84 +388,81 @@ func_spec:
 			}
 		;
 complex_term:		
-			complex_term '(' ')'
+			complex_term TOK_LPAREN TOK_RPAREN
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_NFCALL,
 					$1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	complex_term '[' expr ']'
+		|	complex_term TOK_LSQUARE expr TOK_RSQUARE
 			{
 				$$ = tmknode(GEN_FUNC_SPEC,
 					FUNC_SPEC_ARRAY_EXPR, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	complex_term '[' ']'
+		|	complex_term TOK_LSQUARE TOK_RSQUARE
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_ARRAY,
 					$1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	'(' func_spec ')'
+		|	TOK_LPAREN func_spec TOK_RPAREN
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_INHERIT,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	name'('names')' 
+		|	name TOK_LPAREN names TOK_RPAREN 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
-				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_NAMES, $1, $3);
+				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_NAMES,
+					$1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	name'('')' 
+		|	name TOK_LPAREN TOK_RPAREN 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL, $1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	name '(' ansi_params ')' 
+		|	name TOK_LPAREN ansi_params TOK_RPAREN 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_ANSI,
 					$1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	name '(' ansi_params ',' ELLIPSIS ')' 
+		|	name TOK_LPAREN ansi_params TOK_COMMA ELLIPSIS TOK_RPAREN 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_ANSI_E,
 					$1, $3);
 				tsrc_pos($$, NULL, $6.srcpos);
 			}
-		|	complex_term '(' ansi_params ')'
+		|	complex_term TOK_LPAREN ansi_params TOK_RPAREN
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_ANSI,
 					$1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	complex_term '(' ansi_params ',' ELLIPSIS ')'
+		|	complex_term TOK_LPAREN ansi_params TOK_COMMA ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_ANSI_E,
 					$1, $3);
 				tsrc_pos($$, NULL, $6.srcpos);
 			}
-		|	name '(' ELLIPSIS ')' 
+		|	name TOK_LPAREN ELLIPSIS TOK_RPAREN 
 			{
 				$1->genus = GEN_FNAME;	/* fix leaf type */
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_FCALL_E_ANSI,
 					$1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	complex_term '(' ELLIPSIS ')'
+		|	complex_term TOK_LPAREN ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_FUNC_SPEC, FUNC_SPEC_E_ANSI,
 					$1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
-			}
-		|	/*empty*/
-			{
-				$$ = NULL;
 			}
 		;
 ansi_params:
@@ -449,7 +470,7 @@ ansi_params:
 			{
 				$$ = tmknode(GEN_ANSI_PARAMS, 0, $1, 0);
 			}
-		|	ansi_params ',' ansi_param
+		|	ansi_params TOK_COMMA ansi_param
 			{
 				$$ = tlist_add($1, $3);
 			}
@@ -611,19 +632,15 @@ param_dcls:
 			{
 				$$ = tlist_add($1, $2);
 			}
-		|	param_dcls ';'
+		|	param_dcls TOK_SEMICOLON
 			{
 				/* extra ';' not allowed before 1st param_dcl */
 				$$ = $1;
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-		|	/*empty*/
-			{
-				$$ = NULL;
-			}
 		;
 param_dcl:
-			classtypes parameter_defs ';'
+			classtypes parameter_defs TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF) {
 					parse_error($1->srcpos,
@@ -639,7 +656,7 @@ parameter_defs:
 			{
 				$$ = tmknode(GEN_PARAM_DEFS, 0, $1, 0);
 			}
-		|	parameter_defs ',' data_item 
+		|	parameter_defs TOK_COMMA data_item 
 			{
 				$$ = tlist_add($1, $3);
 			}
@@ -655,22 +672,22 @@ stmt_list:
 			}
 		;
 enum_dcl:
-			ENUM '{' moe_list '}'
+			ENUM TOK_LCURLY moe_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_ENUM_DCL, sENUM_NOTAG, $3, 0);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	ENUM tname_or_name '{' moe_list '}'
+		|	ENUM tname_or_name TOK_LCURLY moe_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_ENUM_DCL, sENUM_TAG, $2, $4);
 				tsrc_pos($$, $1.srcpos, $5.srcpos);
 			}
-		|	ENUM '{' moe_list ',' '}'
+		|	ENUM TOK_LCURLY moe_list TOK_COMMA TOK_RCURLY
 			{
 				$$ = tmknode(GEN_ENUM_DCL, sENUM_NOTAG, $3, 0);
 				tsrc_pos($$, $1.srcpos, $5.srcpos);
 			}
-		|	ENUM tname_or_name '{' moe_list ',' '}'
+		|	ENUM tname_or_name TOK_LCURLY moe_list TOK_COMMA TOK_RCURLY
 			{
 				$$ = tmknode(GEN_ENUM_DCL, sENUM_TAG, $2, $4);
 				tsrc_pos($$, $1.srcpos, $6.srcpos);
@@ -688,7 +705,7 @@ moe_list:
 			{
 				$$ = tmknode(GEN_MOE_LIST, 0, $1, 0);
 			}
-		|	moe_list ',' moe
+		|	moe_list TOK_COMMA moe
 			{
 				$$ = tlist_add($1, $3);
 			}
@@ -698,55 +715,55 @@ moe:
 			{
 				$$ = tmknode(GEN_MOE, MOE_NOVAL, $1, 0);
 			}
-		|	name '=' expr
+		|	name TOK_EQUALS expr
 			{
 				$$ = tmknode(GEN_MOE, MOE_VAL, $1, $3);
 			}
 		;
 struct_dcl:
-			STRUCT tname_or_name '{' mem_list '}'
+			STRUCT tname_or_name TOK_LCURLY mem_list TOK_RCURLY 
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_STRUCT_TAG,
 					$2, $4);
 				tsrc_pos($$, $1.srcpos, $5.srcpos);
 			}
-		|	UNION tname_or_name '{' mem_list '}'
+		|	UNION tname_or_name TOK_LCURLY mem_list TOK_RCURLY 
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_UNION_TAG,
 					$2, $4);
 				tsrc_pos($$, $1.srcpos, $5.srcpos);
 			}
-		|	STRUCT '{' mem_list '}'
+		|	STRUCT TOK_LCURLY mem_list TOK_RCURLY 
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_STRUCT_NOTAG,
 					$3, 0);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	UNION '{' mem_list '}'
+		|	UNION TOK_LCURLY mem_list TOK_RCURLY 
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_UNION_NOTAG,
 					$3, 0);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	TOK_PACKED STRUCT tname_or_name '{' mem_list '}' /*MVS*/
+		|	TOK_PACKED STRUCT tname_or_name TOK_LCURLY mem_list TOK_RCURLY /*MVS*/
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_PSTRUCT_TAG,
 					$3, $5);
 				tsrc_pos($$, $1.srcpos, $6.srcpos);
 			}
-		|	TOK_PACKED UNION tname_or_name '{' mem_list '}' /*MVS*/
+		|	TOK_PACKED UNION tname_or_name TOK_LCURLY mem_list TOK_RCURLY /*MVS*/
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_PUNION_TAG,
 					$3, $5);
 				tsrc_pos($$, $1.srcpos, $6.srcpos);
 			}
-		|	TOK_PACKED STRUCT '{' mem_list '}'	/*MVS*/
+		|	TOK_PACKED STRUCT TOK_LCURLY mem_list TOK_RCURLY	/*MVS*/
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_PSTRUCT_NOTAG,
 					$4, 0);
 				tsrc_pos($$, $1.srcpos, $5.srcpos);
 			}
-		|	TOK_PACKED UNION '{' mem_list '}'	/*MVS*/
+		|	TOK_PACKED UNION TOK_LCURLY mem_list TOK_RCURLY	/*MVS*/
 			{
 				$$ = tmknode(GEN_STRUCT_DCL, DCL_PUNION_NOTAG,
 					$4, 0);
@@ -793,7 +810,7 @@ mem_list:
 			}
 		;
 member:
-			classtypes mem_dcls ';'
+			classtypes mem_dcls TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF) {
 					parse_error($1->srcpos,
@@ -803,17 +820,17 @@ member:
 				$$ = tmknode(GEN_MEMBER, 0, $1, $2);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	';'
+		|	TOK_SEMICOLON
 			{
 			        $$ = NULL; 
 			}
-
-		|	mem_dcls ';'
+/*
+		|	mem_dcls TOK_SEMICOLON
 			{
-				/*
+				/ *
 				* This rule is not in the internal grammar
 				* so we have to fake it.
-				*/
+				* /
 				$$ = tmknode(GEN_MEMBER, 0,
 				  tmknode(GEN_CLASSTYPES, CLASSTYPES_NORMAL,
 				    tmkleaf(GEN_CLASSTYPE, CLASSTYPE_INT,
@@ -822,14 +839,14 @@ member:
 				$1);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-
+*/
 		;
 mem_dcls:
 			mem_dcl
 			{
 				$$ = tmknode(GEN_MEM_DCLS, 0, $1, 0);
 			}
-		|	mem_dcls ',' mem_dcl
+		|	mem_dcls TOK_COMMA mem_dcl
 			{
 				$$ = tlist_add($1, $3);
 			}
@@ -839,11 +856,11 @@ mem_dcl:
 			{
 				$$ = tmknode(GEN_MEM_DCL, MEM_DCL, $1, 0);
 			}
-		|	data_item ':' expr
+		|	data_item TOK_COLON expr
 			{
 				$$ = tmknode(GEN_MEM_DCL, MEM_DCL_BIT, $1, $3);
 			}
-		|	':' expr
+		|	TOK_COLON expr
 			{
 				$$ = tmknode(GEN_MEM_DCL, MEM_BIT, $2, 0);
 				tsrc_pos($$, $1.srcpos, NULL);
@@ -854,13 +871,13 @@ names:
 			{
 				$$ = tmknode(GEN_NAMES, 0, $1, 0);
 			}
-		|	names  ','  name 
+		|	names  TOK_COMMA  name 
 			{
 				$$ = tlist_add($1, $3);
 			}
 		;
 init_dcl:		
-			classtypes data_specs ';'
+			classtypes data_specs TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF) {
 					insertTypeNames($2);
@@ -870,7 +887,7 @@ init_dcl:
 					$1, $2);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	classtypes ';'
+		|	classtypes TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF)
 					$1->species = CLASSTYPES_NORMAL;
@@ -878,7 +895,7 @@ init_dcl:
 					$1, 0);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-		|	data_specs ';'
+		|	data_specs TOK_SEMICOLON
 			{
 				/*
 				* This rule is not in the internal grammar
@@ -892,7 +909,7 @@ init_dcl:
 				$1);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-		|	';'
+		|	TOK_SEMICOLON
 			{
 				/* Never generate corresponding species. */
 				$$ = NULL;
@@ -909,7 +926,7 @@ indata_dcls:
 			}
 		;
 indata_dcl:
-			classtypes data_specs ';'
+			classtypes data_specs TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF) {
 					insertTypeNames($2);
@@ -919,7 +936,7 @@ indata_dcl:
 					$1, $2);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	classtypes ';'
+		|	classtypes TOK_SEMICOLON
 			{
 				if ($1->species == CLASSTYPES_TYPEDEF)
 					$1->species = CLASSTYPES_NORMAL;
@@ -927,7 +944,7 @@ indata_dcl:
 					$1, 0);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-		|	';' indata_dcl				%prec ';'
+		|	TOK_SEMICOLON indata_dcl				%prec TOK_SEMICOLON
 			{
 				$$ = $2;
 				tsrc_pos($$, $1.srcpos, NULL);
@@ -938,7 +955,7 @@ data_specs:
 			{
 				$$ = tmknode(GEN_DATA_SPECS, 0, $1, 0);
 			}
-		|	data_specs ',' data_spec
+		|	data_specs TOK_COMMA data_spec
 			{
 				$$ = tlist_add($1, $3);
 			}
@@ -984,9 +1001,13 @@ data_item:
 			{
 				$$ = $1;
 			}
+		|       
+			{
+				$$=NULL;
+			}
 		;
 nfunc_spec:
-			star nfunc_spec  		%prec '*'
+			star nfunc_spec  		%prec TOK_STAR
 			{
 				if ($2->species == FUNC_STARS_SPEC) {
 					tlist_ladd($2->down->over, $1);
@@ -1008,73 +1029,72 @@ nfunc_spec:
 			}
 		;
 d_i_term:		
-			d_i_term '(' ')'
+			d_i_term TOK_LPAREN TOK_RPAREN
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_NFCALL, $1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	nfunc_spec '[' expr ']'
+		|	nfunc_spec TOK_LSQUARE expr TOK_RSQUARE
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_ARRAY_EXPR, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	nfunc_spec '[' ']'
+		|	nfunc_spec TOK_LSQUARE TOK_RSQUARE
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_ARRAY, $1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	'(' nfunc_spec ')'
+		|	TOK_LPAREN nfunc_spec TOK_RPAREN
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_INHERIT, $2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	d_i_term '(' ansi_params ')'
+		|	d_i_term TOK_LPAREN ansi_params TOK_RPAREN
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_ANSI, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	d_i_term '(' ansi_params ',' ELLIPSIS ')'
+		|	d_i_term TOK_LPAREN ansi_params TOK_COMMA ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_ANSI_E, $1, $3);
 				tsrc_pos($$, NULL, $6.srcpos);
 			}
-		|	d_i_term '(' ELLIPSIS ')'
+		|	d_i_term TOK_LPAREN ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_DATA_ITEM,
 					FUNC_SPEC_E_ANSI, $1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|       { $$ = NULL;}
 		;
 init_list:
 			init_item
 			{
 				$$ = tmknode(GEN_INIT_LIST, 0, $1, 0);
 			}
-		|	init_list ',' init_item
+		|	init_list TOK_COMMA init_item
 			{
 				$$ = tlist_add($1, $3);
 			}
 		;
 init_item:
-			expr				%prec ','
+			expr				%prec TOK_COMMA
 			{
 				$$ = tmknode(GEN_INIT_ITEM, INIT_EXPR,
 					$1, 0);
 			}
-		|	'{' init_list '}'
+		|	TOK_LCURLY init_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_INIT_ITEM, INIT_LIST,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	'{' init_list ',' '}'
+		|	TOK_LCURLY init_list TOK_COMMA TOK_RCURLY
 			{
 				$$ = tmknode(GEN_INIT_ITEM, INIT_LIST,
 					$2, 0);
@@ -1082,19 +1102,19 @@ init_item:
 			}
 		;
 initializer:
-			'=' expr
+			TOK_EQUALS expr
 			{
 				$$ = tmknode(GEN_INITIALIZER, INITIALIZER_EXPR,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	'=' '{' init_list '}'
+		|	TOK_EQUALS TOK_LCURLY init_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_INITIALIZER, INITIALIZER_LIST,
 					$3, 0);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	'=' '{' init_list ',' '}'
+		|	TOK_EQUALS TOK_LCURLY init_list TOK_COMMA TOK_RCURLY
 			{
 				/* Ignore extra comma! */
 				$$ = tmknode(GEN_INITIALIZER, INITIALIZER_LIST,
@@ -1103,25 +1123,25 @@ initializer:
 			}
 		;
 compstmt:	   
-			'{' indata_dcls stmt_list '}'
+			TOK_LCURLY indata_dcls stmt_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_COMPSTMT, COMPSTMT_DCL_STMTS,
 					$2, $3);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	'{' stmt_list '}'
+		|	TOK_LCURLY stmt_list TOK_RCURLY
 			{
 				$$ = tmknode(GEN_COMPSTMT, COMPSTMT_STMTS,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	'{' indata_dcls '}'
+		|	TOK_LCURLY indata_dcls TOK_RCURLY
 			{
 				$$ = tmknode(GEN_COMPSTMT, COMPSTMT_DCL,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	'{' '}'
+		|	TOK_LCURLY TOK_RCURLY
 			{
 				$$ = tmknode(GEN_COMPSTMT, COMPSTMT_EMPTY,
 					0, 0);
@@ -1129,14 +1149,18 @@ compstmt:
 			}
 		;
 stmt:
-			ASM ';'
+			ASM TOK_SEMICOLON
+			{
+				$$ = tmknode(GEN_STMT, STMT_EMPTY, 0, 0);
+				tsrc_pos($$, $1.srcpos, $1.srcpos);
+			}
 		|
-			expr ';'
+			expr TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_EXPR, $1, 0);
 				tsrc_pos($$, NULL, $2.srcpos);
 			}
-		|	';'
+		|	TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_EMPTY, 0, 0);
 				tsrc_pos($$, $1.srcpos, $1.srcpos);
@@ -1145,13 +1169,13 @@ stmt:
 			{
 				$$ = tmknode(GEN_STMT, STMT_COMPSTMT, $1, 0);
 			}
-		|	IF '(' expr ')' stmt ELSE stmt
+		|	IF TOK_LPAREN expr TOK_RPAREN stmt ELSE stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_IF_ELSE, $3, $5);
 				tlist_add($$, $7);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	IF '(' expr ')' stmt			%prec ELSE
+		|	IF TOK_LPAREN expr TOK_RPAREN stmt			%prec ELSE
 			/*
 			* Right associative precedence needed to parse
 			* "if(e)if(e)s;else s;" correctly.  Otherwise
@@ -1162,17 +1186,17 @@ stmt:
 				$$ = tmknode(GEN_STMT, STMT_IF, $3, $5);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	WHILE '(' expr ')' stmt
+		|	WHILE TOK_LPAREN expr TOK_RPAREN stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_WHILE, $3, $5);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	DO stmt WHILE  '('  expr  ')'   ';'
+		|	DO stmt WHILE  TOK_LPAREN  expr  TOK_RPAREN   TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_DO, $2, $5);
 				tsrc_pos($$, $1.srcpos, $7.srcpos);
 			}
-		|	FOR '(' expr ';' expr ';' expr ')' stmt
+		|	FOR TOK_LPAREN expr TOK_SEMICOLON expr TOK_SEMICOLON expr TOK_RPAREN stmt
 			{
 				if ($9->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR_EEE_,
@@ -1188,7 +1212,7 @@ stmt:
 					tsrc_pos($$, $1.srcpos, $9->srcpos);
 				}
 			}
-		|	FOR '(' expr ';' expr ';' ')' stmt
+		|	FOR TOK_LPAREN expr TOK_SEMICOLON expr TOK_SEMICOLON TOK_RPAREN stmt
 			{
 				if ($8->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR_EE__,
@@ -1202,7 +1226,7 @@ stmt:
 					tsrc_pos($$, $1.srcpos, $8->srcpos);
 				}
 			}
-		|	FOR '(' expr ';' ';' expr ')' stmt
+		|	FOR TOK_LPAREN expr TOK_SEMICOLON TOK_SEMICOLON expr TOK_RPAREN stmt
 			{
 				if ($8->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR_E_E_,
@@ -1216,7 +1240,7 @@ stmt:
 					tsrc_pos($$, $1.srcpos, $8->srcpos);
 				}
 			}
-		|	FOR '(' expr ';' ';' ')' stmt
+		|	FOR TOK_LPAREN expr TOK_SEMICOLON TOK_SEMICOLON TOK_RPAREN stmt
 			{
 				if ($7->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR_E___,
@@ -1229,7 +1253,7 @@ stmt:
 				        tsrc_pos($$, $1.srcpos, $7->srcpos);
 				}
 			}
-		|	FOR '(' ';' expr ';' expr ')' stmt
+		|	FOR TOK_LPAREN TOK_SEMICOLON expr TOK_SEMICOLON expr TOK_RPAREN stmt
 			{
 				if ($8->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR__EE_,
@@ -1243,7 +1267,7 @@ stmt:
 					tsrc_pos($$, $1.srcpos, $8->srcpos);
 				}
 			}
-		|	FOR '(' ';' expr ';' ')' stmt
+		|	FOR TOK_LPAREN TOK_SEMICOLON expr TOK_SEMICOLON TOK_RPAREN stmt
 			{
 				if ($7->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR__E__,
@@ -1256,7 +1280,7 @@ stmt:
 				        tsrc_pos($$, $1.srcpos, $7->srcpos);
 				}
 			}
-		|	FOR '(' ';' ';' expr ')' stmt
+		|	FOR TOK_LPAREN TOK_SEMICOLON TOK_SEMICOLON expr TOK_RPAREN stmt
 			{
 				if ($7->species == STMT_EMPTY) {
 					$$ = tmknode(GEN_STMT, STMT_FOR___E_,
@@ -1269,70 +1293,70 @@ stmt:
 					tsrc_pos($$, $1.srcpos, $7->srcpos);
 				}
 			}
-		|	FOR '(' ';' ';' ')' stmt
+		|	FOR TOK_LPAREN TOK_SEMICOLON TOK_SEMICOLON TOK_RPAREN stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_FOR____S, $6, 0);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	SWITCH '(' expr ')' stmt
+		|	SWITCH TOK_LPAREN expr TOK_RPAREN stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_SWITCH, $3, $5);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	CASE expr ':' stmt
+		|	CASE expr TOK_COLON stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_CASE, $2, $4);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	DEFAULT ':' stmt
+		|	DEFAULT TOK_COLON stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_DEFAULT, $3, 0);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	BREAK  ';'
+		|	BREAK  TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_BREAK, 0, 0);
 				tsrc_pos($$, $1.srcpos, $2.srcpos);
 			}
-		|	CONTINUE  ';'
+		|	CONTINUE  TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_CONTINUE, 0, 0);
 				tsrc_pos($$, $1.srcpos, $2.srcpos);
 			}
-		|	RETURN expr  ';'
+		|	RETURN expr  TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_RETURN_EXPR,
 					$2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	RETURN  ';'
+		|	RETURN  TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_RETURN, 0, 0);
 				tsrc_pos($$, $1.srcpos, $2.srcpos);
 			}
-		|	GOTO tname_or_name ';'
+		|	GOTO tname_or_name TOK_SEMICOLON
 			{
 				$$ = tmknode(GEN_STMT, STMT_GOTO, $2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
 			}
-		|	tname_or_name ':' stmt
+		|	tname_or_name TOK_COLON stmt
 			{
 				$$ = tmknode(GEN_STMT, STMT_LABEL, $1, $3);
 			}
 		;
 /*	EXPRESSIONS	*/
 exp_list:
-			expr				%prec ','
+			expr				%prec TOK_COMMA
 			{
 				$$ = tmknode(GEN_EXP_LIST, 0, $1, 0);
 			}
-		|	exp_list ',' expr
+		|	exp_list TOK_COMMA expr
 			{
 				$$ = tlist_add($1, $3);
 			}
 		;
 expr:
-			expr relop expr			%prec '>'
+			expr relop expr			%prec TOK_GREATER
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1, $2);
 				tlist_add($$, $3);
@@ -1343,39 +1367,39 @@ expr:
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1, $2);
 				tlist_add($$, $3);
 			}
-		|	expr ',' expr
+		|	expr TOK_COMMA expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_COMMA, $1, $3);
 			}
-		|	expr '+' expr
+		|	expr TOK_PLUS expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_PLUS,
 						$2.srcpos, 0));
 				tlist_add($$, $3);
 			}
-		|	expr '-' expr
+		|	expr TOK_DASH expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_MINUS,
 						$2.srcpos, 0));
 				tlist_add($$, $3);
 			}
-		|	expr '*' expr
+		|	expr TOK_STAR expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_MUL, $2.srcpos,
 						0));
 				tlist_add($$, $3);
 			}
-		|	expr '/' expr
+		|	expr TOK_SLASH expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_DIV, $2.srcpos,
 						0));
 				tlist_add($$, $3);
 			}
-		|	expr '%' expr
+		|	expr TOK_PERCENT expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_MOD, $2.srcpos,
@@ -1396,21 +1420,21 @@ expr:
 						0));
 				tlist_add($$, $3);
 			}
-		|	expr '|' expr
+		|	expr TOK_VERTICAL expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_OR, $2.srcpos,
 						0));
 				tlist_add($$, $3);
 			}
-		|	expr '^' expr
+		|	expr TOK_CARROT expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_ER, $2.srcpos,
 						0));
 				tlist_add($$, $3);
 			}
-		|	expr '&' expr
+		|	expr TOK_AMPER expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_AND, $2.srcpos,
@@ -1431,17 +1455,17 @@ expr:
 						$2.srcpos, 0));
 				tlist_add($$, $3);
 			}
-		|	expr '?' expr ':' expr
+		|	expr TOK_QMARK expr TOK_COLON expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_QCOLON, $1, $3);
 				tlist_add($$, $5);
 			}
-		|	expr asop expr			%prec	'='
+		|	expr asop expr			%prec	TOK_EQUALS
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1, $2);
 				tlist_add($$, $3);
 			}
-		|	expr '=' expr
+		|	expr TOK_EQUALS expr
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_BINOP, $1,
 					tmkleaf(GEN_BINOP, BINOP_ASGN,
@@ -1480,35 +1504,35 @@ term:
 						0),
 					$2);
 			}
-		|	'&' term				%prec '!'
+		|	TOK_AMPER term				%prec TOK_EXCLAIM
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_UNOP,
 					tmkleaf(GEN_UNOP, UNOP_AND, $1.srcpos,
 						0),
 					$2);
 			}
-		|	'~' term 
+		|	TOK_TILDE term 
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_UNOP,
 					tmkleaf(GEN_UNOP, UNOP_COMPL, $1.srcpos,
 						0),
 					$2);
 			}
-		|	'!' term 
+		|	TOK_EXCLAIM term 
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_UNOP,
 					tmkleaf(GEN_UNOP, UNOP_NOT, $1.srcpos,
 						0),
 					$2);
 			}
-		|	'-' term				%prec '!'
+		|	TOK_DASH term				%prec TOK_EXCLAIM
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_UNOP,
 					tmkleaf(GEN_UNOP, UNOP_MINUS, $1.srcpos,
 						0),
 					$2);
 			}
-		|	'+' term				%prec '!'
+		|	TOK_PLUS term				%prec TOK_EXCLAIM
 			{
 				/*
 				* This rule is not in the internal grammar
@@ -1521,23 +1545,23 @@ term:
 				$$ = tmknode(GEN_EXPR, EXPR_SIZEOF, $2, 0);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	'(' cast_type ')' term			%prec SIZEOF
+		|	TOK_LPAREN cast_type TOK_RPAREN term			%prec SIZEOF
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_CAST, $2, $4);
 				tsrc_pos($$, $1.srcpos, NULL);
 			}
-		|	SIZEOF '(' cast_type ')'		%prec SIZEOF
+		|	SIZEOF TOK_LPAREN cast_type TOK_RPAREN		%prec SIZEOF
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_SIZEOF_TYPE,
 					$3, 0);
 				tsrc_pos($$, $1.srcpos, $4.srcpos);
 			}
-		|	OFFSET '(' tname_or_name ',' mname ')'
+		|	OFFSET TOK_LPAREN tname_or_name TOK_COMMA mname TOK_RPAREN
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_OFFSET, $3, $5);
 				tsrc_pos($$, $1.srcpos, $6.srcpos);
 			}
-		|	star term				%prec '!'
+		|	star term				%prec TOK_EXCLAIM
 			{
 				if ($2->species == EXPR_LSTAR) {
 					tlist_ladd($2->down->over, $1);
@@ -1548,7 +1572,7 @@ term:
 						$2);
 				}
 			}
-		|	term '[' expr ']'
+		|	term TOK_LSQUARE expr TOK_RSQUARE
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_LARRAY, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
@@ -1557,7 +1581,7 @@ term:
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_LARROW, $1, $3);
 			}
-		|	term '.' tname_or_name
+		|	term TOK_PERIOD tname_or_name
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_LDOT, $1, $3);
 			}
@@ -1565,7 +1589,7 @@ term:
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_LNAME, $1, 0);
 			}
-		|	term '(' exp_list  ')'
+		|	term TOK_LPAREN exp_list  TOK_RPAREN
 			{
 				TNODE *p;
 
@@ -1581,7 +1605,7 @@ term:
 				$$ = tmknode(GEN_EXPR, EXPR_LFCALL1, p, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	term '(' ')'
+		|	term TOK_LPAREN TOK_RPAREN
 			{
 				TNODE *p;
 
@@ -1615,7 +1639,7 @@ term:
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_STRING, $1, 0);
 			}
-		|	'(' expr ')'
+		|	TOK_LPAREN expr TOK_RPAREN
 			{
 				$$ = tmknode(GEN_EXPR, EXPR_INHERIT, $2, 0);
 				tsrc_pos($$, $1.srcpos, $3.srcpos);
@@ -1657,27 +1681,27 @@ null_dcl:
 			{
 				$$ = NULL;
 			}
-		|	null_dcl '(' ')'
+		|	null_dcl TOK_LPAREN TOK_RPAREN
 			{
 				$$ = tmknode(GEN_NULL_DCL, NULL_N_FUNC, $1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	null_dcl '(' ansi_params ')'
+		|	null_dcl TOK_LPAREN ansi_params TOK_RPAREN
 			{
 				$$ = tmknode(GEN_NULL_DCL, NULL_ANSI, $1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	null_dcl '(' ansi_params ',' ELLIPSIS ')'
+		|	null_dcl TOK_LPAREN ansi_params TOK_COMMA ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_NULL_DCL, NULL_ANSI_E, $1, $3);
 				tsrc_pos($$, NULL, $6.srcpos);
 			}
-		|	null_dcl '(' ELLIPSIS ')'
+		|	null_dcl TOK_LPAREN ELLIPSIS TOK_RPAREN
 			{
 				$$ = tmknode(GEN_NULL_DCL, NULL_E_ANSI, $1, 0);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	star null_dcl			%prec '*'
+		|	star null_dcl			%prec TOK_STAR
 			{
 				if ($2 == NULL)
 					$$ = tmknode(GEN_NULL_DCL, NULL_STAR,
@@ -1687,7 +1711,7 @@ null_dcl:
 						tmknode(GEN_STARS, 0, $1, 0),
 						$2);
 			}
-		|	null_dcl '[' ']'
+		|	null_dcl TOK_LSQUARE TOK_RSQUARE
 			{
 				if ($1 == NULL)
 					$$ = tmknode(GEN_NULL_DCL, NULL_SUB,
@@ -1697,7 +1721,7 @@ null_dcl:
 						$1, 0);
 				tsrc_pos($$, NULL, $3.srcpos);
 			}
-		|	null_dcl '[' expr ']'
+		|	null_dcl TOK_LSQUARE expr TOK_RSQUARE
 			{
 				if ($1 == NULL)
 					$$ = tmknode(GEN_NULL_DCL, NULL_SUB_E,
@@ -1707,7 +1731,7 @@ null_dcl:
 						$1, $3);
 				tsrc_pos($$, NULL, $4.srcpos);
 			}
-		|	'(' null_dcl ')'
+		|	TOK_LPAREN null_dcl TOK_RPAREN
 			{
 				if ($2 == NULL)
 					$$ = tmknode(GEN_NULL_DCL,
@@ -1720,7 +1744,7 @@ null_dcl:
 		;
 mname:
 			name
-		|	mname '.' name
+		|	mname TOK_PERIOD name
 		;
 
 tname_or_name:						/* saul 8/22/89 */
@@ -1742,12 +1766,12 @@ name:
 			}
 		;
 star:			
-			'*'
+			TOK_STAR
 			{
 				$$ = tmkleaf(GEN_STAR, STAR_NORMAL, $1.srcpos, 0);
 			}
 		|
-			'*' qualifiers
+			TOK_STAR qualifiers
 			{
 				$$ = tmknode(GEN_STAR, STAR_QUALS, $2, 0);
 			}
@@ -1845,12 +1869,12 @@ relop:			GT_EQ
 					$1.srcpos, 0);
 			}
 		|
-			'>'
+			TOK_GREATER
 			{
 				$$ = tmkleaf(GEN_BINOP, BINOP_GT, $1.srcpos, 0);
 			}
 		|
-			'<'
+			TOK_LESSER
 			{
 				$$ = tmkleaf(GEN_BINOP, BINOP_LT, $1.srcpos, 0);
 			}
@@ -1867,48 +1891,46 @@ equop:			EQUAL
 			}
 		;
 %%
+
 #define CHECK_MALLOC(p) ((p)?1:internal_error(NULL, "Out of memory\n"))
 
 int
-parse(srcfile, tree, uprefix)
-FILE	*srcfile;
-TNODE	**tree;
-char	**uprefix;
+parse(FILE *srcfile,
+      TNODE ** tree,
+      char **uprefix)
 {
-	extern	intcmp();
-	int	status;
+    int status;
 
-	scan_init(srcfile);
+    scan_init(srcfile);
 
-	status = yyparse();
+    status = yyparse();
 
-	scan_end(uprefix);
+    scan_end(uprefix);
 
-	*tree = tree_root;
+    *tree = tree_root;
 
-	return status;
+    return status;
 }
 
 static void
-insertTypeNames(node)
-TNODE	*node;
+insertTypeNames(TNODE * node)
 {
-	TNODE	*p;
-	TNODE	*item;
+    TNODE *p;
+    TNODE *item;
 
-	if (node->genus != GEN_DATA_SPECS) {
-		internal_error(node->srcpos, "Unexpected genus: %d",
-			node->genus);
-	}
+    if (node->genus != GEN_DATA_SPECS) {
+	internal_error(node->srcpos, "Unexpected genus: %d",
+		       node->genus);
+    }
 
-	for (p = CHILD0(node); p != NULL; p = TNEXT(p)) {
-		item = CHILD0(p);
-		while (item->genus == GEN_DATA_ITEM) {
-			if (item->species == FUNC_STARS_SPEC)
-				item = CHILD1(item);
-			else item = CHILD0(item);
-		}
-		scan_setType(item->text);
+    for (p = CHILD0(node); p != NULL; p = TNEXT(p)) {
+	item = CHILD0(p);
+	while (item->genus == GEN_DATA_ITEM) {
+	    if (item->species == FUNC_STARS_SPEC)
+		item = CHILD1(item);
+	    else
+		item = CHILD0(item);
 	}
+	scan_setType(item->text);
+    }
 }
-

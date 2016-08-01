@@ -12,15 +12,25 @@
 *OF THIS MATERIAL FOR ANY PURPOSE.  IT IS PROVIDED "AS IS",
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #ifdef MVS
 #include <mvapts.h>
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char filestamp_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/filestamp.c,v 3.3 94/04/04 10:13:06 jrh Exp $";
+static const char filestamp_c[] = "$Id: filestamp.c,v 3.6 2013/12/08 18:25:41 tom Exp $";
 /*
-*-----------------------------------------------$Log:	filestamp.c,v $
+* @Log: filestamp.c,v @
+* Revision 3.5  1997/12/09 00:46:12  tom
+* move 'filestamp()' prototype to srcpos.h
+*
+* Revision 3.4  1996/11/13 00:42:11  tom
+* change ident to 'const' to quiet gcc
+* add forward-ref prototype
+*
 * Revision 3.3  94/04/04  10:13:06  jrh
 * Add Release Copyright
 * 
@@ -46,9 +56,9 @@ static char filestamp_c[] =
 * Revision 2.1  91/06/13  12:39:07  saul
 * Propagate to version 2.0
 * 
- * Revision 1.1  91/06/12  20:25:42  saul
- * Aug 1990 baseline
- * 
+* Revision 1.1  91/06/12  20:25:42  saul
+* Aug 1990 baseline
+* 
 *-----------------------------------------------end of log
 */
 #include "portable.h"
@@ -61,20 +71,19 @@ static char filestamp_c[] =
 #endif /* MVS */
 #endif
 
-/* forward declarations */
-int filestamp();
+#include "srcpos.h"
 
 int
-filestamp(path)
-char	*path;
+filestamp(char *path)
 {
 #ifdef MVS
-	return 0;
+    return 0;
 #else /* not MVS */
-	struct	stat	buf;
+    struct stat buf;
 
-	if (stat(path, &buf) != 0) return 0;
+    if (stat(path, &buf) != 0)
+	return 0;
 
-	return (int)buf.st_mtime;
+    return (int) buf.st_mtime;
 #endif /* not MVS */
 }

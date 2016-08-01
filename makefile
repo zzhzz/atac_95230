@@ -105,7 +105,7 @@
 
 SHELL=/bin/sh
 
-prefix=/usr/local
+prefix=/usr
 INSTALLDIR	= ${prefix}
 
 INSTALL		= /usr/bin/install -c

@@ -1,0 +1,35 @@
+v 3.2
+# v version
+# S source-file-name time-stamp
+# F function-name s-file s-line s-col e-file e-line e-col
+# B s-file s-line s-col e-file e-line e-col
+# V variable-name
+# C variable definition-block C-use-block
+# P variable definition-block P-use-block to-block
+# c formal-number-of-C-uses
+# p formal-number-of-P-uses
+S "text.c" 1469949348
+S "liballoc.c" 0
+F yy_flex_alloc 1 19 1  1 23 2
+B 1 21 2  1 23 2
+B 1 21 2  1 22 42
+V size
+C 0 0 1 1 20 1 1 20 9 1 22 37 1 22 40
+c 1
+p 0
+F yy_flex_realloc 1 25 1  1 30 2
+B 1 28 2  1 30 2
+B 1 28 2  1 29 48
+V ptr
+V size
+C 1 0 1 1 27 1 1 27 9 1 29 43 1 29 46
+C 0 0 1 1 26 1 1 26 10 1 29 27 1 29 29
+c 2
+p 0
+F yy_flex_free 1 32 1  1 36 2
+B 1 34 2  1 36 2
+B 1 34 2  1 35 12
+V ptr
+C 0 0 1 1 33 1 1 33 10 1 35 8 1 35 10
+c 1
+p 0

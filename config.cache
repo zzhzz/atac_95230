@@ -12,26 +12,26 @@
 # config.status only pays attention to the cache file if you give it the
 # --recheck option to rerun configure.
 #
-ac_cv_bits_char=${ac_cv_bits_char='8'}
-ac_cv_bits_int=${ac_cv_bits_int='32'}
-ac_cv_bits_long=${ac_cv_bits_long='64'}
-ac_cv_bits_short=${ac_cv_bits_short='16'}
-ac_cv_c_const=${ac_cv_c_const='yes'}
-ac_cv_c_cross=${ac_cv_c_cross='no'}
-ac_cv_func_strerror=${ac_cv_func_strerror='yes'}
-ac_cv_func_vfprintf=${ac_cv_func_vfprintf='yes'}
-ac_cv_header_fcntl_h=${ac_cv_header_fcntl_h='yes'}
-ac_cv_header_stdc=${ac_cv_header_stdc='yes'}
-ac_cv_header_stdlib_h=${ac_cv_header_stdlib_h='yes'}
-ac_cv_header_sys_time_h=${ac_cv_header_sys_time_h='yes'}
-ac_cv_header_time=${ac_cv_header_time='yes'}
-ac_cv_header_time_h=${ac_cv_header_time_h='yes'}
-ac_cv_header_unistd_h=${ac_cv_header_unistd_h='yes'}
-ac_cv_path_ATACCC=${ac_cv_path_ATACCC='/usr/local/bin/atacCC'}
+ac_cv_bits_char=${ac_cv_bits_char=''8''}
+ac_cv_bits_int=${ac_cv_bits_int=''32''}
+ac_cv_bits_long=${ac_cv_bits_long=''64''}
+ac_cv_bits_short=${ac_cv_bits_short=''16''}
+ac_cv_c_const=${ac_cv_c_const=''yes''}
+ac_cv_c_cross=${ac_cv_c_cross=''no''}
+ac_cv_func_strerror=${ac_cv_func_strerror=''yes''}
+ac_cv_func_vfprintf=${ac_cv_func_vfprintf=''yes''}
+ac_cv_header_fcntl_h=${ac_cv_header_fcntl_h=''yes''}
+ac_cv_header_stdc=${ac_cv_header_stdc=''yes''}
+ac_cv_header_stdlib_h=${ac_cv_header_stdlib_h=''yes''}
+ac_cv_header_sys_time_h=${ac_cv_header_sys_time_h=''yes''}
+ac_cv_header_time=${ac_cv_header_time=''yes''}
+ac_cv_header_time_h=${ac_cv_header_time_h=''yes''}
+ac_cv_header_unistd_h=${ac_cv_header_unistd_h=''yes''}
+ac_cv_path_ATACCC=${ac_cv_path_ATACCC=''/usr/local/bin/atacCC''}
 ac_cv_path_install=${ac_cv_path_install=''/usr/bin/install -c''}
-ac_cv_prog_CC=${ac_cv_prog_CC='gcc'}
+ac_cv_prog_CC=${ac_cv_prog_CC=''gcc''}
 ac_cv_prog_CPP=${ac_cv_prog_CPP=''gcc -E''}
-ac_cv_prog_gcc=${ac_cv_prog_gcc='yes'}
-ac_cv_prog_gcc_g=${ac_cv_prog_gcc_g='yes'}
-ac_cv_prog_make_make_set=${ac_cv_prog_make_make_set='yes'}
-ac_cv_type_size_t=${ac_cv_type_size_t='yes'}
+ac_cv_prog_gcc=${ac_cv_prog_gcc=''yes''}
+ac_cv_prog_gcc_g=${ac_cv_prog_gcc_g=''yes''}
+ac_cv_prog_make_make_set=${ac_cv_prog_make_make_set=''yes''}
+ac_cv_type_size_t=${ac_cv_type_size_t=''yes''}

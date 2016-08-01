@@ -14,15 +14,17 @@
 ****************************************************************/
 #ifndef bitvector_H
 #define bitvector_H
-static char bitvector_h[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/bitvec.h,v 3.2 94/04/04 10:12:00 jrh Exp $";
+static const char bitvector_h[] = "$Id: bitvec.h,v 3.4 2013/12/08 22:04:06 tom Exp $";
 /*
-*-----------------------------------------------$Log:	bitvec.h,v $
-*Revision 3.2  94/04/04  10:12:00  jrh
-*Add Release Copyright
+* @Log: bitvec.h,v @
+* Revision 3.3  1996/11/13 00:24:05  tom
+* change ident to 'const' to quiet gcc
 *
-*Revision 3.1  93/07/12  09:47:24  saul
-*Name changed from bitvector.h for MVS.
+* Revision 3.2  94/04/04  10:12:00  jrh
+* Add Release Copyright
+*
+* Revision 3.1  93/07/12  09:47:24  saul
+* Name changed from bitvector.h for MVS.
 *
 * Revision 3.0  92/11/06  07:46:04  saul
 * propagate to version 3.0
@@ -33,14 +35,14 @@ static char bitvector_h[] =
 * Revision 2.1  91/06/13  12:38:56  saul
 * Propagate to version 2.0
 * 
- * Revision 1.1  91/06/12  20:25:35  saul
- * Aug 1990 baseline
- * 
+* Revision 1.1  91/06/12  20:25:35  saul
+* Aug 1990 baseline
+* 
 *-----------------------------------------------end of log
 */
-#define BITSPW		32			/* Bits Per Word */
-#define LBITSPW		5			/* Log Bits Per Word */
-#define LBYTESPW	2			/* Log Bytes Per Word */
+#define BITSPW		32	/* Bits Per Word */
+#define LBITSPW		5	/* Log Bits Per Word */
+#define LBYTESPW	2	/* Log Bytes Per Word */
 #define WORDS_FOR_BITS(n)	(((n) + BITSPW - 1) >> LBITSPW)
 #define BYTES_FOR_BITS(n)	(WORDS_FOR_BITS(n) << LBYTESPW)
 typedef unsigned long BVPTR;

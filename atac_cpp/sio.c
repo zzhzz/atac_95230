@@ -18,9 +18,12 @@ MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
 static char sio_c[] = 
-	"$Header: /u/saul/atac/src/atac_cpp/RCS/sio.c,v 1.2 94/04/04 10:22:31 jrh Exp $";
+	"$Header: /usr/build/atac/atac/atac_cpp/RCS/sio.c,v 1.2 1994/04/04 10:22:31 jrh Exp $";
 /*
-*-----------------------------------------------$Log:	sio.c,v $
+*$Log: sio.c,v $
+*Revision 1.2  1994/04/04 10:22:31  jrh
+*FROM_KEYS
+*
 *Revision 1.2  94/04/04  10:22:31  jrh
 *Add Release Copyright
 *

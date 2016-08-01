@@ -14,10 +14,27 @@
 ****************************************************************/
 #ifndef sym_H
 #define sym_H
-static char sym_h[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/sym.h,v 3.3 94/04/04 10:14:43 jrh Exp $";
+static const char sym_h[] = "$Id: sym.h,v 3.11 2013/12/09 00:20:32 tom Exp $";
 /*
-*-----------------------------------------------$Log:	sym.h,v $
+* @Log: sym.h,v @
+* Revision 3.9  1997/12/09 00:12:45  tom
+* moved extern-declaration of decis_sym here.
+*
+* Revision 3.8  1997/05/12 00:20:24  tom
+* correct sign in QUAL_OVERFLOW
+*
+* Revision 3.7  1997/05/11 23:07:09  tom
+* add prototypes for print_sym.c
+*
+* Revision 3.6  1997/05/10 23:59:15  tom
+* add prototypes for const.c, which use this module
+*
+* Revision 3.5  1996/11/13 00:25:02  tom
+* change ident to 'const' to quiet gcc
+*
+* Revision 3.4  1995/12/13 01:03:44  tom
+* add SCB_INLINE
+*
 * Revision 3.3  94/04/04  10:14:43  jrh
 * Add Release Copyright
 * 
@@ -45,9 +62,9 @@ static char sym_h[] =
 * Revision 2.1  91/06/13  12:39:25  saul
 * Propagate to version 2.0
 * 
- * Revision 1.1  91/06/12  20:25:53  saul
- * Aug 1990 baseline
- * 
+* Revision 1.1  91/06/12  20:25:53  saul
+* Aug 1990 baseline
+* 
 *-----------------------------------------------end of log
 */
 /*
@@ -79,7 +96,7 @@ static char sym_h[] =
 #define SCB_EXTERN_REF	16	/* func dcl without body or explicit extern */
 #define SCB_REG		32	/* explicit register */
 #define SCB_INIT	64	/* explicitly initialized */
-#define SCB_CONST	128	/* explicit constant (ANSI) */ 
+#define SCB_CONST	128	/* explicit constant (ANSI) */
 #define	SCB_VOLATILE	256	/* explicit volitile (ANSI) */
 #define SCB_AUTO	512
 #define SCB_INLINE	1024
@@ -119,7 +136,7 @@ static char sym_h[] =
 
 #define QUAL_SHIFT	2
 #define QUAL_MASK	3
-#define QUAL_OVERFLOW(q)	((q) & ~ LURSHIFT(~0L, QUAL_SHIFT))
+#define QUAL_OVERFLOW(q) ((q) & (unsigned long)(~ LURSHIFT(~0L, QUAL_SHIFT)))
 
 #define QUAL_ISPTR(q)	(((q) & QUAL_MASK) == QUAL_PTR)
 #define QUAL_ISFUNC(q)	(((q) & QUAL_MASK) == QUAL_FUNC)
@@ -140,27 +157,27 @@ typedef int reftype_t;
 #define DEF_REF	((reftype_t) 1)
 
 typedef struct tnode_list {
-	struct tnode_list	*next;
-	struct tnode		*ref;
-	reftype_t		type;
+    struct tnode_list *next;
+    struct tnode *ref;
+    reftype_t type;
 } TNODE_LIST;
 
 typedef struct symtablist {
-	struct symtablist	*next;
-	struct symlist		*symtab;
-	struct symlist		**global_tab;
+    struct symtablist *next;
+    struct symlist *symtab;
+    struct symlist **global_tab;
 } SYMTABLIST;
-	
+
 typedef struct symlist {
-	struct symlist	*next;
-	struct sym	*sym;
+    struct symlist *next;
+    struct sym *sym;
 } SYMLIST;
-	
+
 typedef struct dimlist {
-	struct dimlist	*next;
-	int		size;
+    struct dimlist *next;
+    int size;
 } DIMLIST;
-	
+
 /*
 * Symbol Table:  List of symbols.
 *
@@ -189,48 +206,61 @@ typedef struct dimlist {
 *	(Define first and last as in: int a[first]...[last];)
 */
 
-typedef	struct valtype {
-		short		sclass;
-		short		base;
-		short	 	bits;
-		short		bit_alignment;
-		unsigned long	qual;
-		SYMLIST		*param_list;
-		struct sym	*tag;
-		DIMLIST		*dimensions;
+typedef struct valtype {
+    short sclass;
+    short base;
+    short bits;
+    short bit_alignment;
+    unsigned long qual;
+    SYMLIST *param_list;
+    struct sym *tag;
+    DIMLIST *dimensions;
 } VALTYPE;
 
 typedef int CONST_VALUE_TYPE;
 #define CONST_VT		   0	/* value present */
-#define CONST_VT_NON_NULL_ADDRESS  1	/* Non NULL address */ 
+#define CONST_VT_NON_NULL_ADDRESS  1	/* Non NULL address */
 #define CONST_VT_UNDETERMINED      2	/* not a constant expression */
 #define CONST_VT_UNDEFINED	   3	/* e.g. divide by 0 */
 #define CONST_VT_UNKNOWN	   4	/* e.g. precision lost, overflow */
 
 typedef struct {
-	CONST_VALUE_TYPE	type;
-	long			fraction;   /* actually whole integ. value */
-	/* ??? Changes needed to handle float values. */
-} CONST_VALUE; 
+    CONST_VALUE_TYPE type;
+    long fraction;		/* actually whole integ. value */
+    /* ??? Changes needed to handle float values. */
+} CONST_VALUE;
 
 typedef struct sym {
-	char		*name;
-	struct tnode	*def;
-	TNODE_LIST	*ref;
-	NAMETYPE	nametype;
-	CONST_VALUE	*constValue;
-	union {
-		struct {
-			SYMLIST	*fieldlist;
-		} 		struct_tag;		/* also union_tag */
-		struct {
-			SYMLIST	*memlist;
-		}	 	enum_tag;
-		struct {
-			struct sym	*tag;
-		}		mem_enum;
-		struct list	*label;
-		VALTYPE		valtype;		/* also type_name */
-	} type;
+    char *name;
+    struct tnode *def;
+    TNODE_LIST *ref;
+    NAMETYPE nametype;
+    CONST_VALUE *constValue;
+    union {
+	struct {
+	    SYMLIST *fieldlist;
+	} struct_tag;		/* also union_tag */
+	struct {
+	    SYMLIST *memlist;
+	} enum_tag;
+	struct {
+	    struct sym *tag;
+	} mem_enum;
+	struct list *label;
+	VALTYPE valtype;	/* also type_name */
+    } type;
 } SYM;
+
+/* fg_module.c */
+extern SYM decis_sym;
+
+/* const.c */
+extern int evalIConstExpr(struct tnode *node);
+extern void evalConstExpr(struct tnode *n, CONST_VALUE * value);
+extern void testConst(void);
+
+/* print_sym.c */
+extern void print_sym(SYM * sym, char *prefix);
+extern void print_type(FILE *f, VALTYPE * type, const char *name, const char *prefix);
+
 #endif /* sym_H */

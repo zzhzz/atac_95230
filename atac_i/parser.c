@@ -17,13 +17,21 @@
 MODULEID(%M%,%J%/%D%/%T%)
 #endif /* MVS */
 
-static char parser_c[] = 
-	"$Header: /u/saul/atac/src/atac_i/RCS/parser.c,v 3.4 94/04/04 13:36:30 saul Exp $";
-static char bellcoreCopyRight[] =
+static const char parser_c[] = "$Id: parser.c,v 3.7 2013/12/08 18:03:48 tom Exp $";
+static const char bellcoreCopyRight[] =
 "Copyright (c) 1993 Bell Communications Research, Inc. (Bellcore)";
 
 /*
-*-----------------------------------------------$Log:	parser.c,v $
+* @Log: parser.c,v @
+* Revision 3.6  1997/12/08 22:22:48  tom
+* use TNODE* instead of void*
+*
+* Revision 3.5  1997/05/12 00:11:47  tom
+* add includes to get prototypes
+*
+* Revision 3.4  1994/04/04 13:36:30  saul
+* FROM_KEYS
+*
 * Revision 3.4  94/04/04  13:36:30  saul
 * Fix binary copyright.
 * 
@@ -65,104 +73,105 @@ static char bellcoreCopyRight[] =
 * 
 *-----------------------------------------------end of log
 */
+#include <stdlib.h>
 #include <stdio.h>
 #include "portable.h"
-
-/* forward declarations */
-int main();
-static void usage();
+#include "error.h"
+#include "tnode.h"
 
 static void
-usage(cmd)
-char	*cmd;
+usage(char *cmd)
 {
-	fprintf(stderr, "Usage: %s [-S] [-s] [-t] [-d] [-w] srcin\n", cmd);
-	fprintf(stderr, "\t-S supress symbol resolution\n");
-	fprintf(stderr, "\t-s dump symbols\n");
-	fprintf(stderr, "\t-t dump parse tree\n");
-	fprintf(stderr, "\t-d deparse\n");
-	fprintf(stderr, "\t-w supress warning messages\n");
+    fprintf(stderr, "Usage: %s [-S] [-s] [-t] [-d] [-w] srcin\n", cmd);
+    fprintf(stderr, "\t-S supress symbol resolution\n");
+    fprintf(stderr, "\t-s dump symbols\n");
+    fprintf(stderr, "\t-t dump parse tree\n");
+    fprintf(stderr, "\t-d deparse\n");
+    fprintf(stderr, "\t-w supress warning messages\n");
 }
 
 int
-main(argc, argv)
-int	argc;
-char	*argv[];
+main(int argc,
+     char *argv[])
 {
-	static char	*prefix;
-	void	*tree;
-	int	status;
-	int	i;
-	char	*p;
-	int	supress_sym = 0;
-	int	dump_tree = 0;
-	int	dump_sym_flag = 0;
-	int	do_deparse = 0;
-	FILE	*srcin = NULL;
+    static char *prefix;
+    TNODE *tree;
+    int status;
+    int i;
+    char *p;
+    int supress_sym = 0;
+    int dump_tree = 0;
+    int dump_sym_flag = 0;
+    int do_deparse = 0;
+    FILE *srcin = NULL;
 
-	for (i = 1; i < argc; ++i) {
-		p = argv[i];
-		if (*p == '-' && *(p + 1)) {
-			while (*++p) {
-				switch (*p)
-				{
-					case 'S':
-						supress_sym = 1;
-						break;
-					case 's':
-						dump_sym_flag = 1;
-						break;
-					case 't':
-						dump_tree = 1;
-						break;
-					case 'd':
-						do_deparse = 1;
-						break;
-					case 'w':
-						supress_warnings();
-						break;
-					case '?':
-						usage(argv[0]);
-						exit(1);
-					default:
-						fprintf(stderr,
-							"unknown flag %c\n",
-							*p);
-						exit(1);
-				}
-			}
-		} else {
-			if (srcin == NULL) {
-				if (*p == '-') srcin = stdin;
-				else {
-					srcin = fopen(p, "r");
-					if (srcin == NULL) {
-						fprintf(stderr,
-							"can't open %s\n", p);
-						exit(1);
-					}
-				}
-			}
-			else {
-				fprintf(stderr, "extra argument %s\n", p);
-				exit(1);
-			}
+    for (i = 1; i < argc; ++i) {
+	p = argv[i];
+	if (*p == '-' && *(p + 1)) {
+	    while (*++p) {
+		switch (*p) {
+		case 'S':
+		    supress_sym = 1;
+		    break;
+		case 's':
+		    dump_sym_flag = 1;
+		    break;
+		case 't':
+		    dump_tree = 1;
+		    break;
+		case 'd':
+		    do_deparse = 1;
+		    break;
+		case 'w':
+		    supress_warnings();
+		    break;
+		case '?':
+		    usage(argv[0]);
+		    exit(1);
+		default:
+		    fprintf(stderr,
+			    "unknown flag %c\n",
+			    *p);
+		    exit(1);
 		}
-	}
-
-	if (srcin == NULL) srcin = stdin;
-	
-	status = parse(srcin, &tree, &prefix);
-
-	if (status == 0) {
-		if (!supress_sym) sym(tree);
-		if (dump_tree) print_tree(tree, 1, 0, 0);
-		if (dump_sym_flag) dump_sym(tree, prefix);
-		if (do_deparse) deparse(tree, stdout, "HOOK", prefix);
+	    }
 	} else {
-		fprintf(stderr, "parse errors\n");
+	    if (srcin == NULL) {
+		if (*p == '-')
+		    srcin = stdin;
+		else {
+		    srcin = fopen(p, "r");
+		    if (srcin == NULL) {
+			fprintf(stderr,
+				"can't open %s\n", p);
+			exit(1);
+		    }
+		}
+	    } else {
+		fprintf(stderr, "extra argument %s\n", p);
 		exit(1);
+	    }
 	}
+    }
 
-	return 0;
+    if (srcin == NULL)
+	srcin = stdin;
+
+    status = parse(srcin, &tree, &prefix);
+
+    if (status == 0) {
+	if (!supress_sym)
+	    do_sym(tree);
+	if (dump_tree)
+	    print_tree(tree, 1, 0, 0);
+	if (dump_sym_flag)
+	    dump_sym(tree, prefix);
+	if (do_deparse)
+	    deparse(tree, stdout, "HOOK", prefix);
+    } else {
+	fprintf(stderr, "parse errors\n");
+	exit(1);
+    }
+
+    return 0;
 }

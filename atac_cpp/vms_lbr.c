@@ -13,9 +13,12 @@
 *WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES.
 ****************************************************************/
 static char vms_lbr_c[] = 
-	"$Header: /u/saul/atac/src/atac_cpp/RCS/vms_lbr.c,v 3.2 94/04/04 10:22:45 jrh Exp $";
+	"$Header: /usr/build/atac/atac/atac_cpp/RCS/vms_lbr.c,v 3.2 1994/04/04 10:22:45 jrh Exp $";
 /*
-*-----------------------------------------------$Log:	vms_lbr.c,v $
+*$Log: vms_lbr.c,v $
+*Revision 3.2  1994/04/04 10:22:45  jrh
+*FROM_KEYS
+*
 *Revision 3.2  94/04/04  10:22:45  jrh
 *Add Release Copyright
 *
